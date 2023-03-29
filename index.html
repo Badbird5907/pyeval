@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script defer src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+    <script defer>
+      let setup = false
+      let pyodide = null
+      async function setup_pyodide() {
+        if (setup) return;
+        setup = true
+        pyodide = await window.loadPyodide({
+          indexURL : "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/"
+        });
+        // setup pyodide environment to run code blocks as needed
+        var setup_code = `
+import sys, io, traceback
+namespace = {}  # use separate namespace to hide run_code, modules, etc.
+def run_code(code):
+  print('Running code: ', code)
+  """run specified code and return stdout and stderr"""
+  out = io.StringIO()
+  oldout = sys.stdout
+  olderr = sys.stderr
+  sys.stdout = sys.stderr = out
+  try:
+      # change next line to exec(code, {}) if you want to clear vars each time
+      exec(code, namespace)
+  except:
+      traceback.print_exc()
+
+  sys.stdout = oldout
+  sys.stderr = olderr
+  return out.getvalue()
+`
+        pyodide.runPython(setup_code)
+      }
+
+      async function runPython(code) {
+        await setup_pyodide()
+        const context = {
+          code_to_run: code
+        }
+        const result = await pyodide.runPythonAsync(`run_code('${code}')`, context)
+        console.log({ result })
+        return result;
+      }
+    </script>
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
