@@ -40,10 +40,9 @@ def run_code(code):
 
       async function runPython(code) {
         await setup_pyodide()
-        const context = {
-          code_to_run: code
-        }
-        const result = await pyodide.runPythonAsync(`run_code('${code}')`, context)
+        const c = JSON.stringify(code);
+        console.log({ c })
+        const result = await pyodide.runPythonAsync(`run_code(${c})`)
         console.log({ result })
         return result;
       }
