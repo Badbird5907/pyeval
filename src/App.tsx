@@ -496,6 +496,14 @@ function App() { // god awful code, but it works lmao
                             keyboardRef={r => (keyboard.current = r)}
                             layoutName={layoutName}
                             onKeyPress={onKeyPress}
+                            display={{
+                                '{bksp}': '⌫',
+                                '{enter}': '↵',
+                                '{shift}': '⇧',
+                                '{lock}': '⇪',
+                                '{tab}': '⇥',
+                                '{space}': '␣',
+                            }}
                         />}
                     <div>
                         <h3>Output</h3>
