@@ -9,3 +9,4 @@ Built with [pyodide](https://pyodide.org/)
 - [ ] Auto indent for ifs
 - [ ] Add more features
 - [ ] Support for other languages
+- [x] Switch to monaco editor
