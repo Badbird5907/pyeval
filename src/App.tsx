@@ -8,7 +8,8 @@ import {
     createTheme,
     CssBaseline,
     FormControlLabel,
-    FormGroup, IconButton,
+    FormGroup,
+    IconButton,
     Modal,
     Popover,
     Stack,
@@ -44,7 +45,7 @@ function App() { // god awful code, but it works lmao
     const [input, setInput] = useState("print('Hello, World!')");
     const [output, setOutput] = useState<any>({});
     const keyboard = useRef<any>(null);
-    const textArea = useRef<HTMLTextAreaElement>(null);
+    const [textArea, setTextArea] = useState<HTMLTextAreaElement>();
 
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
@@ -132,27 +133,17 @@ function App() { // god awful code, but it works lmao
         }
         saveSettings();
     }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme, useNewEditor]);
-    useEffect(() => {
-        // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
-        // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
-        if (!textArea) return;
 
-        function checkSelection() {
-            if (textArea.current?.selectionStart && textArea.current?.selectionEnd) {
-                setSelectionStart(textArea.current.selectionStart);
-                setSelectionEnd(textArea.current.selectionEnd);
-            }
+    function updateSelection(e: any) {
+        const target = e.currentTarget;
+        const selectionStart = target?.selectionStart;
+        const selectionEnd = target?.selectionEnd;
+        if (selectionStart && selectionEnd) {
+            setSelectionStart(selectionStart);
+            setSelectionEnd(selectionEnd);
         }
+    }
 
-        textArea.current?.addEventListener("click", () => { // whenever we click inside the textarea
-            //(A)console.log("Clicked inside textarea");
-            checkSelection();
-        });
-        textArea.current?.addEventListener("keyup", () => { // whenever we press a key inside the textarea
-            //(A)console.log("Keyup inside textarea");
-            checkSelection();
-        });
-    }, [textArea]);
     useEffect(() => {
         loadSettings();
         const urlParams = new URLSearchParams(window.location.search);
@@ -209,10 +200,13 @@ function App() { // god awful code, but it works lmao
                 await resetSelections();
             }
             const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
+            console.log("hasSelection", hasSelection);
             if (hasSelection) {
                 //(A)console.log("We are selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
+                const middle = input.substring(selectionStart, selectionEnd); // get the text we are selecting
+                console.log("before", before, "middle", middle, "after", after);
                 // handle backspace
                 if (inputStr === "{bksp}") {
                     await setInput(before + after); // set the input to the text before the selection + the text after the selection
@@ -220,7 +214,10 @@ function App() { // god awful code, but it works lmao
                     return;
                 }
                 await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
-                await resetSelections();
+                // await resetSelections();
+                // set the selection to the end of the text we just added
+                await setSelectionStart(selectionStart + inputStr.length);
+                await setSelectionEnd(selectionStart + inputStr.length);
                 return;
             } else { // we are not selecting text, just typing
                 if (inputStr === "{bksp}") {
@@ -236,6 +233,10 @@ function App() { // god awful code, but it works lmao
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
+                if (after.length > 0) {
+                    await setSelectionStart(selectionStart + inputStr.length); // update the selection
+                    await setSelectionEnd(selectionStart + inputStr.length);
+                }
                 return; // we don't need to reset the selections because we are not selecting text
             }
         } else {
@@ -440,8 +441,8 @@ function App() { // god awful code, but it works lmao
                     alignItems: "flex-end",
                     padding: 10,
                 }}>
-                    <IconButton sx={{ ml: 1 }} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
-                        <GitHubIcon />
+                    <IconButton sx={{ml: 1}} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
+                        <GitHubIcon/>
                     </IconButton>
                     <ThemeToggler onChange={(newTheme) => {
                         console.log({newTheme});
@@ -471,14 +472,17 @@ function App() { // god awful code, but it works lmao
                                         }}
                                     />
                                 </>
-                                ) : (
+                            ) : (
                                 <CodeEditor
+                                    id={"code-editor"}
                                     value={input}
                                     language="python"
                                     placeholder="Please enter code."
                                     onChange={(evn) => onChangeInput(evn)}
                                     minHeight={20}
-                                    ref={textArea}
+                                    onClick={updateSelection}
+                                    onMouseUp={updateSelection}
+                                    onKeyDown={updateSelection}
                                     data-color-mode={mode}
                                     style={{
                                         fontSize: 12,
@@ -492,19 +496,24 @@ function App() { // god awful code, but it works lmao
                         }
                     </div>
                     {enableKeyboard &&
-                        <Keyboard
-                            keyboardRef={r => (keyboard.current = r)}
-                            layoutName={layoutName}
-                            onKeyPress={onKeyPress}
-                            display={{
-                                '{bksp}': '⌫',
-                                '{enter}': '↵',
-                                '{shift}': '⇧',
-                                '{lock}': '⇪',
-                                '{tab}': '⇥',
-                                '{space}': '␣',
-                            }}
-                        />}
+                        <div style={{
+                            width: "100vw",
+                        }}>
+                            <Keyboard
+                                keyboardRef={r => (keyboard.current = r)}
+                                layoutName={layoutName}
+                                onKeyPress={onKeyPress}
+                                display={{
+                                    '{bksp}': '⌫',
+                                    '{enter}': '↵',
+                                    '{shift}': '⇧',
+                                    '{lock}': '⇪',
+                                    '{tab}': '⇥',
+                                    '{space}': '␣',
+                                }}
+                                theme={`hg-theme-default ${mode === "dark" ? "darkTheme" : ""}`}
+                            />
+                        </div>}
                     <div>
                         <h3>Output</h3>
                         <Output errorHighlighting={errorHighlighting}
