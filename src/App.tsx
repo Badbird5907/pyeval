@@ -86,8 +86,6 @@ function App() { // god awful code, but it works lmao
             }),
         [mode],
     );
-
-
     function saveSettings() { // make sure to modify the useEffect below when adding new settings
         console.log("Saving settings");
         localStorage.setItem("autoRun", autoRun.toString());
@@ -134,16 +132,6 @@ function App() { // god awful code, but it works lmao
         saveSettings();
     }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme, useNewEditor]);
 
-    function updateSelection(e: any) {
-        const target = e.currentTarget;
-        const selectionStart = target?.selectionStart;
-        const selectionEnd = target?.selectionEnd;
-        if (selectionStart && selectionEnd) {
-            setSelectionStart(selectionStart);
-            setSelectionEnd(selectionEnd);
-        }
-    }
-
     useEffect(() => {
         loadSettings();
         const urlParams = new URLSearchParams(window.location.search);
@@ -172,6 +160,16 @@ function App() { // god awful code, but it works lmao
         // @ts-ignore
         return await runPython(code);
     }
+    function updateSelection(e: any) {
+        const target = e.currentTarget;
+        const selectionStart = target?.selectionStart;
+        const selectionEnd = target?.selectionEnd;
+        console.log({e, selectionStart, selectionEnd});
+        if (selectionStart !== null && selectionStart !== undefined  && selectionEnd !== null && selectionEnd !== undefined) {
+            setSelectionStart(selectionStart);
+            setSelectionEnd(selectionEnd);
+        }
+    }
     const addInput = async (inputStr: string) => {
         async function resetSelections() {
             //(A)console.log("Resetting selections");
@@ -189,60 +187,83 @@ function App() { // god awful code, but it works lmao
         if (inputStr === "{enter}") {
             inputStr = "\n";
         }
-        if (selectionStart && selectionEnd) {
+        if (selectionStart !== null && selectionStart !== undefined  && selectionEnd !== null && selectionEnd !== undefined) {
             // check out of bounds (input)
             if (selectionStart < 0 || selectionStart > input.length) {
-                //(A)console.log("Selection start is out of bounds, resetting to end");
+                console.log("Selection start is out of bounds, resetting to end");
                 await resetSelections();
             }
             if (selectionEnd < 0 || selectionEnd > input.length) {
-                //(A)console.log("Selection end is out of bounds, resetting to end");
+                console.log("Selection end is out of bounds, resetting to end");
                 await resetSelections();
             }
             const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
-            console.log("hasSelection", hasSelection);
             if (hasSelection) {
                 //(A)console.log("We are selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 const middle = input.substring(selectionStart, selectionEnd); // get the text we are selecting
-                console.log("before", before, "middle", middle, "after", after);
+                const allTextSelected = selectionStart === 0 && selectionEnd === input.length; // are we selecting all the text?
+                console.log("before", before, "middle", middle, "after", after, "allTextSelected", allTextSelected);
                 // handle backspace
                 if (inputStr === "{bksp}") {
-                    await setInput(before + after); // set the input to the text before the selection + the text after the selection
+                    if (allTextSelected) {
+                        setInput("");
+                        await resetSelections();
+                        return "";
+                    }
+                    const inp = before + after;
+                    await setInput(inp); // set the input to the text before the selection + the text after the selection
                     await resetSelections();
-                    return;
+                    return inp;
                 }
-                await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
+                if (allTextSelected) {
+                    await setInput(inputStr); // set the input to the text before the selection + the input + the text after the selection
+                    await resetSelections();
+                    return inputStr;
+                }
+                const res = before + inputStr + after;
+                await setInput(res); // set the input to the text before the selection + the input + the text after the selection
                 // await resetSelections();
                 // set the selection to the end of the text we just added
                 await setSelectionStart(selectionStart + inputStr.length);
                 await setSelectionEnd(selectionStart + inputStr.length);
-                return;
+                return res;
             } else { // we are not selecting text, just typing
                 if (inputStr === "{bksp}") {
                     // remove the character before the selection
                     const before = input.substring(0, selectionStart - 1); // get the text before the selection
                     const after = input.substring(selectionEnd); // get the text after the selection
-                    await setInput(before + after); // set the input to the text before the selection + the text after the selection
+                    const res = before + after;
+                    await setInput(res); // set the input to the text before the selection + the text after the selection
                     await setSelectionStart(selectionStart - 1); // update the selection
                     await setSelectionEnd(selectionStart - 1);
-                    return; // Don't need to reset the selections because we are not selecting text
+                    return res; // Don't need to reset the selections because we are not selecting text
                 }
                 //(A)console.log("We are not selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
-                await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
+                const res = before + inputStr + after;
+                await setInput(res); // set the input to the text before the selection + the input + the text after the selection
                 if (after.length > 0) {
                     await setSelectionStart(selectionStart + inputStr.length); // update the selection
                     await setSelectionEnd(selectionStart + inputStr.length);
                 }
-                return; // we don't need to reset the selections because we are not selecting text
+                return res; // we don't need to reset the selections because we are not selecting text
             }
         } else {
-            await setInput(input + inputStr);
+            if (inputStr === "{bksp}") {
+                const res = input.substring(0, input.length - 1);
+                await setInput(res);
+                await resetSelections();
+                return res;
+            }
+            const res = input + inputStr;
+            await setInput(res);
+            await resetSelections();
+            return res;
         }
-        await resetSelections();
+        return input;
     }
 
     const exec = async (code: string) => {
@@ -257,9 +278,10 @@ function App() { // god awful code, but it works lmao
             handleShift();
             return;
         }
-        await addInput(button);
+        const res = await addInput(button);
+        console.log({ res });
         if (autoRun) {
-            await exec(input);
+            await exec(res as string);
         }
     };
 
@@ -483,6 +505,7 @@ function App() { // god awful code, but it works lmao
                                     onClick={updateSelection}
                                     onMouseUp={updateSelection}
                                     onKeyDown={updateSelection}
+                                    onKeyUp={updateSelection}
                                     data-color-mode={mode}
                                     style={{
                                         fontSize: 12,
