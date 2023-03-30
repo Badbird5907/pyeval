@@ -54,6 +54,7 @@ function App() { // god awful code, but it works lmao
     const [shareError, setShareError] = useState(false);
     const [shareButton, setShareButton] = useState<HTMLButtonElement | null>(null);
     const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
 
     // settings
     const [autoRun, setAutoRun] = useState(true);
@@ -62,7 +63,7 @@ function App() { // god awful code, but it works lmao
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
     const [autoRunInShare, setAutoRunInShare] = useState(true);
     const [tabSpaces, setTabSpaces] = useState(tabSpacesDefault);
-    const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
+    const [customTheme, setCustomTheme] = useState<'light' | 'dark'>('dark');
 
     const colorMode = React.useMemo(
         () => ({
@@ -85,6 +86,7 @@ function App() { // god awful code, but it works lmao
 
 
     function saveSettings() { // make sure to modify the useEffect below when adding new settings
+        console.log("Saving settings");
         localStorage.setItem("autoRun", autoRun.toString());
         localStorage.setItem("enableKeyboard", enableKeyboard.toString());
         localStorage.setItem("errorHighlighting", errorHighlighting.toString());
@@ -92,6 +94,11 @@ function App() { // god awful code, but it works lmao
         localStorage.setItem("autoRunInShare", autoRunInShare.toString());
         if (tabSpaces !== tabSpacesDefault) {
             localStorage.setItem("tabSpaces", tabSpaces.toString());
+        }
+        if (customTheme !== 'dark') { // jank
+            localStorage.setItem("customTheme", customTheme.toString());
+        } else {
+            localStorage.removeItem("customTheme");
         }
     }
 
@@ -102,6 +109,11 @@ function App() { // god awful code, but it works lmao
         if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
         if ("autoRunInShare" in localStorage) setAutoRunInShare(localStorage.getItem("autoRunInShare") === "true");
         if ("tabSpaces" in localStorage) setTabSpaces(parseInt(localStorage.getItem("tabSpaces") || tabSpacesDefault.toString()));
+        if ("customTheme" in localStorage) {
+            const t = localStorage.getItem("customTheme") as 'light' | 'dark';
+            setCustomTheme(t);
+            setMode(t);
+        }
 
         setSettingsLoaded(true);
     }
@@ -111,7 +123,7 @@ function App() { // god awful code, but it works lmao
             return;
         }
         saveSettings();
-    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces]);
+    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme]);
     useEffect(() => {
         // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -418,7 +430,10 @@ function App() { // god awful code, but it works lmao
                     <IconButton sx={{ ml: 1 }} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
                         <GitHubIcon />
                     </IconButton>
-                    <ThemeToggler/>
+                    <ThemeToggler onChange={(newTheme) => {
+                        console.log({newTheme});
+                        setCustomTheme(newTheme as 'light' | 'dark');
+                    }}/>
                 </div>
                 <div style={{
                     display: "flex",
