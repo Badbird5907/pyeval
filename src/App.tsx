@@ -12,40 +12,50 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 function App() { // god awful code, but it works lmao
+    const errorsRegEx = [
+        /Traceback \(most recent call last\):/,
+        /File ".*", line .* in .*/,
+        /.*Error: .*/,
+    ]; // we have to use regex because the json stderr stuff from python is a bit weird (only one line is marked as an error etc...)
     const [layoutName, setLayoutName] = useState("default");
-    const [input, setInput] = useState("");
-    const [output, setOutput] = useState("");
+    const [input, setInput] = useState("print('Hello, World!')");
+    const [output, setOutput] = useState<any>({});
     const keyboard = useRef<any>(null);
     const textArea = useRef<HTMLTextAreaElement>(null);
 
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
 
-    const [autoRun, setAutoRun] = useState(false);
+    const [autoRun, setAutoRun] = useState(true);
     const [enableKeyboard, setEnableKeyboard] = useState(true);
 
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
         if (!textArea) return;
+
         function checkSelection() {
             if (textArea.current?.selectionStart && textArea.current?.selectionEnd) {
                 setSelectionStart(textArea.current.selectionStart);
                 setSelectionEnd(textArea.current.selectionEnd);
             }
         }
+
         textArea.current?.addEventListener("click", () => { // whenever we click inside the textarea
-            console.log("Clicked inside textarea");
+            //(A)console.log("Clicked inside textarea");
             checkSelection();
         });
         textArea.current?.addEventListener("keyup", () => { // whenever we press a key inside the textarea
-            console.log("Keyup inside textarea");
+            //(A)console.log("Keyup inside textarea");
             checkSelection();
         });
     }, [textArea]);
 
     useEffect(() => {
-        console.log("Selection changed", selectionStart, selectionEnd);
+        //(A)console.log("Selection changed", selectionStart, selectionEnd);
     }, [selectionStart, selectionEnd])
+    useEffect(() => {
+        exec(input)
+    }, [])
 
     const runScript = async (code: string) => {
         console.log("Running python code", code);
@@ -54,11 +64,12 @@ function App() { // god awful code, but it works lmao
     }
     const addInput = async (inputStr: string) => {
         async function resetSelections() {
-            console.log("Resetting selections");
+            //(A)console.log("Resetting selections");
             // WE ARE AWAITING THIS BECAUSE WE NEED TO WAIT FOR THE STATE TO UPDATE BEFORE WE CAN USE IT IDK IF IT ACTUALLY WORKS BUT I'VE GOTTEN RACE CONDITIONS BEFORE AND I REALLY DONT WANT TO WORK THAT OUT AAAAAAAAAAAAAAAAAAAA
             await setSelectionStart(input.length + 1); // update the selection
             await setSelectionEnd(input.length + 1);
         }
+
         if (inputStr === "{tab}") {
             inputStr = "  ";
         }
@@ -71,16 +82,16 @@ function App() { // god awful code, but it works lmao
         if (selectionStart && selectionEnd) {
             // check out of bounds (input)
             if (selectionStart < 0 || selectionStart > input.length) {
-                console.log("Selection start is out of bounds, resetting to end");
+                //(A)console.log("Selection start is out of bounds, resetting to end");
                 await resetSelections();
             }
             if (selectionEnd < 0 || selectionEnd > input.length) {
-                console.log("Selection end is out of bounds, resetting to end");
+                //(A)console.log("Selection end is out of bounds, resetting to end");
                 await resetSelections();
             }
             const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
             if (hasSelection) {
-                console.log("We are selecting text");
+                //(A)console.log("We are selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 // handle backspace
@@ -102,7 +113,7 @@ function App() { // god awful code, but it works lmao
                     await setSelectionEnd(selectionStart - 1);
                     return; // Don't need to reset the selections because we are not selecting text
                 }
-                console.log("We are not selecting text");
+                //(A)console.log("We are not selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
@@ -114,20 +125,21 @@ function App() { // god awful code, but it works lmao
         await resetSelections();
     }
 
-    const exec = async () => {
-        const out = await runScript(input);
-        setOutput(out);
+    const exec = async (code: string) => {
+        //(A)console.log("Executing code: ", input);
+        const out = await runScript(code);
+        setOutput(JSON.parse(out));
     }
 
     const onKeyPress = async (button: string) => {
-        console.log("Button pressed", button);
+        //(A)console.log("Button pressed", button);
         if (button === "{shift}" || button === "{lock}") {
             handleShift();
             return;
         }
         await addInput(button);
         if (autoRun) {
-            await exec();
+            await exec(input);
         }
     };
 
@@ -137,78 +149,100 @@ function App() { // god awful code, but it works lmao
 
     const onChangeInput = async (event: any) => {
         const input = event.target.value;
-        setInput(input);
+        await setInput(input);
         keyboard.current?.setInput(input);
         if (autoRun) {
-            await exec();
+            console.log("Auto running", input);
+            await exec(input);
         }
     };
 
     return (
-       <>
-           <div>
-               <p>Note: Tab = 2 spaces</p>
-               <Stack direction={"row"} spacing={2}>
-                   <FormGroup>
-                       <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
+        <>
+            <div>
+                <p>Note: Tab = 2 spaces</p>
+                <Stack direction={"row"} spacing={2}>
+                    <FormGroup>
+                        <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
                             setAutoRun(!autoRun);
-                       }} />} label="Auto Run" />
-                   </FormGroup>
-                   <FormGroup>
-                       <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
+                        }}/>} label="Auto Run"/>
+                    </FormGroup>
+                    <FormGroup>
+                        <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
                             setEnableKeyboard(!enableKeyboard);
-                       }} />} label="Keyboard" />
-                   </FormGroup>
-                   <Button
-                          variant="contained"
-                            color="success"
-                            onClick={exec}
-                          endIcon={<PlayArrowIcon />}
-                        >
-                            Run
-                        </Button>
-               </Stack>
-           </div>
-           <div style={{
-               display: "flex",
-               flexDirection: "column",
-               alignItems: "center",
-               height: "100vh",
-               width: "100vw",
-           }}>
-               <CodeEditor
-                   value={input}
-                   language="python"
-                   placeholder="Please enter code."
-                   onChange={(evn) => onChangeInput(evn)}
-                   minHeight={20}
-                   ref={textArea}
-                   style={{
-                       fontSize: 12,
-                       width: "90vw",
-                       height: "40vh",
-                       backgroundColor: "#f5f5f5",
-                       fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                   }}
-               />
-               {enableKeyboard &&
-                   <Keyboard
-                       keyboardRef={r => (keyboard.current = r)}
-                       layoutName={layoutName}
-                       onKeyPress={onKeyPress}
-                   />}
-               <div>
-                   <h3>Output</h3>
-                   <p id={"output"}>
+                        }}/>} label="Keyboard"/>
+                    </FormGroup>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={async () => {
+                            await exec(input)
+                        }}
+                        endIcon={<PlayArrowIcon/>}
+                    >
+                        Run
+                    </Button>
+                </Stack>
+            </div>
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                height: "100vh",
+                width: "100vw",
+            }}>
+                <CodeEditor
+                    value={input}
+                    language="python"
+                    placeholder="Please enter code."
+                    onChange={(evn) => onChangeInput(evn)}
+                    minHeight={20}
+                    ref={textArea}
+                    style={{
+                        fontSize: 12,
+                        width: "90vw",
+                        height: "40vh",
+                        backgroundColor: "#f5f5f5",
+                        fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                    }}
+                />
+                {enableKeyboard &&
+                    <Keyboard
+                        keyboardRef={r => (keyboard.current = r)}
+                        layoutName={layoutName}
+                        onKeyPress={onKeyPress}
+                    />}
+                <div>
+                    <h3>Output</h3>
+                    <pre id={"output"}>
                        {/* Replace newlines with <br/> */}
-                       {output.split("\n").map((item, key) => {
-                           return <span key={key}>{item}<br/></span>
-                       })}
-                   </p>
-               </div>
-           </div>
-       </>
+                        {output?.out && (
+                            // {"out": ["Hello, World!", "Traceback (most recent call last):", " File \"<exec>\", line 16, in run_code", " File \"<string>\", line 2, in <module>", "NameError: name 'error' is not defined"], "errors": [2]}
+                            output.out.map((line: string) => {
+                                //(A)console.log(output)
+                                // check if the line is an error
+                                if (output.errors && output.errors.includes(output.out.indexOf(line)) || errorsRegEx.some((regEx) => regEx.test(line))) {
+                                    return (
+                                        <>
+                                            <span style={{color: "red"}} key={Math.random().toString()}>{line}<br/></span>
+                                        </>
+                                    );
+                                }
+                                return (
+                                    <>
+                                        <span key={Math.random().toString()}>
+                                            {line}
+                                            <br/>
+                                        </span>
+                                    </>
+                                );
+                            })
+                       )}
+                   </pre>
+                </div>
+            </div>
+        </>
     );
 }
 
-export default App
+    export default App

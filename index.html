@@ -9,33 +9,43 @@
       let setup = false
       let pyodide = null
       async function setup_pyodide() {
-        if (setup) return;
-        setup = true
-        pyodide = await window.loadPyodide({
-          indexURL : "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/"
-        });
+        if (!setup) {
+          setup = true
+          pyodide = await window.loadPyodide({
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/"
+          });
+        }
         // setup pyodide environment to run code blocks as needed
-        var setup_code = `
-import sys, io, traceback
-namespace = {}  # use separate namespace to hide run_code, modules, etc.
-def run_code(code):
-  print('Running code: ', code)
-  """run specified code and return stdout and stderr"""
-  out = io.StringIO()
-  oldout = sys.stdout
-  olderr = sys.stderr
-  sys.stdout = sys.stderr = out
-  try:
-      # change next line to exec(code, {}) if you want to clear vars each time
-      exec(code, namespace)
-  except:
-      traceback.print_exc()
+        const setup_code = `
+import sys
+import io
+import traceback
+import json
 
-  sys.stdout = oldout
-  sys.stderr = olderr
-  return out.getvalue()
+def run_code(code):
+    """run specified code and return stdout, stderr, and error lines"""
+    out = io.StringIO()
+    oldout = sys.stdout
+    olderr = sys.stderr
+    sys.stdout = sys.stderr = out
+    errors = []
+    try:
+        # change next line to exec(code, {}) if you want to clear vars each time
+        exec(code, {})
+    except:
+        traceback.print_exc()
+        errors = traceback.format_exc().splitlines()
+
+    sys.stdout = oldout
+    sys.stderr = olderr
+
+    result = {
+        "out": out.getvalue().splitlines(),
+        "errors": [i+1 for i, line in enumerate(out.getvalue().splitlines()) if line.startswith("Traceback")],
+    }
+    return json.dumps(result)
 `
-        pyodide.runPython(setup_code)
+        return await pyodide.runPythonAsync(setup_code)
       }
 
       async function runPython(code) {
