@@ -29,6 +29,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Output from "./components/Output";
 import ThemeToggler from "./components/ThemeToggler";
+import Editor from "@monaco-editor/react";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {
@@ -64,6 +65,7 @@ function App() { // god awful code, but it works lmao
     const [autoRunInShare, setAutoRunInShare] = useState(true);
     const [tabSpaces, setTabSpaces] = useState(tabSpacesDefault);
     const [customTheme, setCustomTheme] = useState<'light' | 'dark'>('dark');
+    const [useNewEditor, setUseNewEditor] = useState(true);
 
     const colorMode = React.useMemo(
         () => ({
@@ -100,6 +102,11 @@ function App() { // god awful code, but it works lmao
         } else {
             localStorage.removeItem("customTheme");
         }
+        if (!useNewEditor) { // we want to change or delete this setting in the future
+            localStorage.setItem("useNewEditor", useNewEditor.toString());
+        } else {
+            localStorage.removeItem("useNewEditor");
+        }
     }
 
     function loadSettings() {
@@ -109,6 +116,7 @@ function App() { // god awful code, but it works lmao
         if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
         if ("autoRunInShare" in localStorage) setAutoRunInShare(localStorage.getItem("autoRunInShare") === "true");
         if ("tabSpaces" in localStorage) setTabSpaces(parseInt(localStorage.getItem("tabSpaces") || tabSpacesDefault.toString()));
+        if ("useNewEditor" in localStorage) setUseNewEditor(localStorage.getItem("useNewEditor") === "true");
         if ("customTheme" in localStorage) {
             const t = localStorage.getItem("customTheme") as 'light' | 'dark';
             setCustomTheme(t);
@@ -123,7 +131,7 @@ function App() { // god awful code, but it works lmao
             return;
         }
         saveSettings();
-    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme]);
+    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme, useNewEditor]);
     useEffect(() => {
         // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -313,6 +321,11 @@ function App() { // god awful code, but it works lmao
                                     }}/>} label="Auto run in shares"/>
                                 </FormGroup>
                                 <FormGroup>
+                                    <FormControlLabel control={<Switch checked={useNewEditor} onChange={() => {
+                                        setUseNewEditor(!useNewEditor);
+                                    }}/>} label="Use new editor"/>
+                                </FormGroup>
+                                <FormGroup>
                                     <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
                                         setTabSpaces(parseInt(e.target.value));
                                     }}/>
@@ -443,22 +456,40 @@ function App() { // god awful code, but it works lmao
                     width: "100vw",
                 }}>
                     <div data-color-mode={mode || "dark"}>
-                        <CodeEditor
-                            value={input}
-                            language="python"
-                            placeholder="Please enter code."
-                            onChange={(evn) => onChangeInput(evn)}
-                            minHeight={20}
-                            ref={textArea}
-                            data-color-mode={mode}
-                            style={{
-                                fontSize: 12,
-                                marginTop: 20,
-                                width: "90vw",
-                                height: "40vh",
-                                fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                            }}
-                        />
+                        {
+                            useNewEditor ? (
+                                <>
+                                    <Editor
+                                        height="40vh"
+                                        width="90vw"
+                                        defaultLanguage="python"
+                                        defaultValue={input}
+                                        onChange={(evn) => onChangeInput({target: {value: evn}})}
+                                        theme={mode === "dark" ? "vs-dark" : "vs"}
+                                        onMount={() => {
+                                            console.log("editor mounted");
+                                        }}
+                                    />
+                                </>
+                                ) : (
+                                <CodeEditor
+                                    value={input}
+                                    language="python"
+                                    placeholder="Please enter code."
+                                    onChange={(evn) => onChangeInput(evn)}
+                                    minHeight={20}
+                                    ref={textArea}
+                                    data-color-mode={mode}
+                                    style={{
+                                        fontSize: 12,
+                                        marginTop: 20,
+                                        width: "90vw",
+                                        height: "40vh",
+                                        fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                                    }}
+                                />
+                            )
+                        }
                     </div>
                     {enableKeyboard &&
                         <Keyboard
