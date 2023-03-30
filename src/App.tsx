@@ -8,7 +8,7 @@ import {
     createTheme,
     CssBaseline,
     FormControlLabel,
-    FormGroup,
+    FormGroup, IconButton,
     Modal,
     Popover,
     Stack,
@@ -20,6 +20,7 @@ import {
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
+import GitHubIcon from "@mui/icons-material/GitHub";
 
 import './App.css'
 import '@fontsource/roboto/300.css';
@@ -307,7 +308,10 @@ function App() { // god awful code, but it works lmao
                             </Box>
                         </Modal>
                     )}
-                    <Stack direction={"row"} spacing={2}>
+                    <Stack direction={"row"} spacing={2} style={{
+                        margin: 20,
+                        zIndex: 1000,
+                    }}>
                         <FormGroup>
                             <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
                                 setAutoRun(!autoRun);
@@ -411,9 +415,9 @@ function App() { // god awful code, but it works lmao
                     alignItems: "flex-end",
                     padding: 10,
                 }}>
-                    <a href={"https://github.com/Badbird5907/pyeval-web"}>
-                        Github
-                    </a>
+                    <IconButton sx={{ ml: 1 }} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
+                        <GitHubIcon />
+                    </IconButton>
                     <ThemeToggler/>
                 </div>
                 <div style={{
