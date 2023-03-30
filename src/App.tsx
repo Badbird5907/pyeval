@@ -26,7 +26,7 @@ function App() { // god awful code, but it works lmao
     const [selectionEnd, setSelectionEnd] = useState(0);
 
     const [autoRun, setAutoRun] = useState(true);
-    const [enableKeyboard, setEnableKeyboard] = useState(true);
+    const [enableKeyboard, setEnableKeyboard] = useState(false);
     const [errorHighlighting, setErrorHighlighting] = useState(true);
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
 
