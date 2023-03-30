@@ -81,7 +81,8 @@ function App() { // god awful code, but it works lmao
         }
         saveSettings();
     }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces]);
-    useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
+    useEffect(() => {
+        // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
         if (!textArea) return;
 
@@ -107,13 +108,13 @@ function App() { // god awful code, but it works lmao
         const shareCode = urlParams.get('share');
         if (shareCode) {
             setInput("# Loading share code...")
-            if (!autoRunInShare) {
-                setAutoRun(false);
-            }
             fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
-                if (res.status === 200) {
+                if (res.status >= 200 && res.status < 300) {
                     const data = await res.text();
                     setInput(data);
+                    if (autoRunInShare) {
+                        exec(data);
+                    }
                 } else {
                     alert("Failed to load share code");
                 }
@@ -302,7 +303,7 @@ function App() { // god awful code, but it works lmao
                                     body: input,
                                 }).then((res) => {
                                     console.log({res});
-                                    if (res.status === 201) {
+                                    if (res.status >= 200 && res.status < 300) {
                                         res.json().then((data) => {
                                             const key = data.key;
                                             if (key) {
