@@ -15,6 +15,7 @@ import '@fontsource/roboto/700.css';
 import Output from "./components/Output";
 
 function App() { // god awful code, but it works lmao
+    const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
     const [layoutName, setLayoutName] = useState("default");
     const [input, setInput] = useState("print('Hello, World!')");
     const [output, setOutput] = useState<any>({});
@@ -31,6 +32,8 @@ function App() { // god awful code, but it works lmao
 
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
     const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
+    const [shareProcessing, setShareProcessing] = useState(false);
+    const [shareError, setShareError] = useState(false);
     const [shareButton, setShareButton] = useState<HTMLButtonElement | null>(null);
 
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
@@ -61,9 +64,19 @@ function App() { // god awful code, but it works lmao
         const urlParams = new URLSearchParams(window.location.search);
         const shareCode = urlParams.get('share');
         if (shareCode) {
-            const data = atob(shareCode);
-            setInput(data);
-        } else exec(input)
+            setInput("# Loading share code..." )
+            fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
+                if (res.status === 200) {
+                    const data = await res.text();
+                    setInput(data);
+                } else {
+                    alert("Failed to load share code");
+                }
+            });
+        } else {
+            setInput("print('Hello, World!')");
+            exec(input)
+        }
     }, [])
 
     const runScript = async (code: string) => {
@@ -225,13 +238,37 @@ function App() { // god awful code, but it works lmao
                             onClick={(e) => {
                                 setShareButton(e.currentTarget)
                                 setSharePopoverOpen(true);
-                                // base64 encode the input
-                                const encoded = btoa(input);
-                                // create a new url with the encoded input
-                                const url = new URL(window.location.href);
-                                url.searchParams.set("share", encoded);
-                                // copy the url to the clipboard
-                                navigator.clipboard.writeText(url.toString());
+                                setShareProcessing(true);
+                                fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "text/plain",
+                                        "User-Agent": "PyEval - Badbird5907",
+                                    },
+                                    body: input,
+                                }).then((res) => {
+                                    console.log({ res });
+                                    if (res.status === 201) {
+                                        res.json().then((data) => {
+                                            const key = data.key;
+                                            if (key) {
+                                                // create a new url with the encoded input
+                                                const url = new URL(window.location.href);
+                                                url.searchParams.set("share", key);
+                                                // copy the url to the clipboard
+                                                navigator.clipboard.writeText(url.toString());
+                                                setShareProcessing(false);
+                                            } else {
+                                                setShareError(true);
+                                            }
+                                        });
+                                    } else {
+                                        setShareError(true);
+                                    }
+                                }).catch((err) => {
+                                    console.error(err);
+                                    setShareError(true);
+                                });
                             }}
                             endIcon={<IosShareIcon/>}
                             aria-describedby={"share-popover"}
@@ -250,7 +287,7 @@ function App() { // god awful code, but it works lmao
                                 horizontal: 'left',
                             }}
                         >
-                            <Typography sx={{ p: 2 }}>Link copied to clipboard</Typography>
+                            <Typography sx={{ p: 2 }}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
                         </Popover>
                     </div>
                     <Button
