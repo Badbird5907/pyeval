@@ -15,6 +15,12 @@ const Output = ({errorHighlighting, aggressiveErrorHighlighting, output }: Props
     return (
         <>
             <pre id={"output"}>
+                {/* @ts-ignore */}
+                {!setup && (
+                    <>
+                        <p>Setting up, please wait...</p>
+                    </>
+                )}
                 {output?.out && (
                     // {"out": ["Hello, World!", "Traceback (most recent call last):", " File \"<exec>\", line 16, in run_code", " File \"<string>\", line 2, in <module>", "NameError: name 'error' is not defined"], "errors": [2]}
                     output.out.map((line: string) => {
