@@ -171,7 +171,7 @@ function App() { // god awful code, but it works lmao
         }
     }
     const addInput = async (inputStr: string) => {
-        async function resetSelections() {
+        async function resetSelections(input: string) {
             //(A)console.log("Resetting selections");
             // WE ARE AWAITING THIS BECAUSE WE NEED TO WAIT FOR THE STATE TO UPDATE BEFORE WE CAN USE IT IDK IF IT ACTUALLY WORKS BUT I'VE GOTTEN RACE CONDITIONS BEFORE AND I REALLY DONT WANT TO WORK THAT OUT AAAAAAAAAAAAAAAAAAAA
             await setSelectionStart(input.length + 1); // update the selection
@@ -191,11 +191,11 @@ function App() { // god awful code, but it works lmao
             // check out of bounds (input)
             if (selectionStart < 0 || selectionStart > input.length) {
                 console.log("Selection start is out of bounds, resetting to end");
-                await resetSelections();
+                await resetSelections(input);
             }
             if (selectionEnd < 0 || selectionEnd > input.length) {
                 console.log("Selection end is out of bounds, resetting to end");
-                await resetSelections();
+                await resetSelections(input);
             }
             const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
             if (hasSelection) {
@@ -209,17 +209,18 @@ function App() { // god awful code, but it works lmao
                 if (inputStr === "{bksp}") {
                     if (allTextSelected) {
                         setInput("");
-                        await resetSelections();
+                        await resetSelections("");
                         return "";
                     }
                     const inp = before + after;
                     await setInput(inp); // set the input to the text before the selection + the text after the selection
-                    await resetSelections();
+                    await setSelectionStart(selectionStart); // set the selection to the end of the text we just added
+                    await setSelectionEnd(selectionStart);
                     return inp;
                 }
                 if (allTextSelected) {
                     await setInput(inputStr); // set the input to the text before the selection + the input + the text after the selection
-                    await resetSelections();
+                    await resetSelections(inputStr);
                     return inputStr;
                 }
                 const res = before + inputStr + after;
@@ -255,12 +256,12 @@ function App() { // god awful code, but it works lmao
             if (inputStr === "{bksp}") {
                 const res = input.substring(0, input.length - 1);
                 await setInput(res);
-                await resetSelections();
+                await resetSelections(res);
                 return res;
             }
             const res = input + inputStr;
             await setInput(res);
-            await resetSelections();
+            await resetSelections(res);
             return res;
         }
         return input;
