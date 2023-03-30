@@ -25,17 +25,38 @@ function App() { // god awful code, but it works lmao
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
 
-    const [autoRun, setAutoRun] = useState(true);
-    const [enableKeyboard, setEnableKeyboard] = useState(false);
-    const [errorHighlighting, setErrorHighlighting] = useState(true);
-    const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
-
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
     const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
     const [shareProcessing, setShareProcessing] = useState(false);
     const [shareError, setShareError] = useState(false);
     const [shareButton, setShareButton] = useState<HTMLButtonElement | null>(null);
+    const [settingsLoaded, setSettingsLoaded] = useState(false);
 
+    // settings
+    const [autoRun, setAutoRun] = useState(true);
+    const [enableKeyboard, setEnableKeyboard] = useState(false);
+    const [errorHighlighting, setErrorHighlighting] = useState(true);
+    const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
+
+    function saveSettings() {
+        localStorage.setItem("autoRun", autoRun.toString());
+        localStorage.setItem("enableKeyboard", enableKeyboard.toString());
+        localStorage.setItem("errorHighlighting", errorHighlighting.toString());
+        localStorage.setItem("aggressiveErrorHighlighting", aggressiveErrorHighlighting.toString());
+    }
+    function loadSettings() {
+        setAutoRun(localStorage.getItem("autoRun") === "true");
+        setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
+        setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
+        setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
+        setSettingsLoaded(true);
+    }
+    useEffect(() => {
+        if (!settingsLoaded) {
+            return;
+        }
+        saveSettings();
+    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting]);
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
         if (!textArea) return;
@@ -56,11 +77,8 @@ function App() { // god awful code, but it works lmao
             checkSelection();
         });
     }, [textArea]);
-
     useEffect(() => {
-        //(A)console.log("Selection changed", selectionStart, selectionEnd);
-    }, [selectionStart, selectionEnd])
-    useEffect(() => {
+        loadSettings();
         const urlParams = new URLSearchParams(window.location.search);
         const shareCode = urlParams.get('share');
         if (shareCode) {
@@ -77,7 +95,7 @@ function App() { // god awful code, but it works lmao
             setInput("print('Hello, World!')");
             exec(input)
         }
-    }, [])
+    }, []);
 
     const runScript = async (code: string) => {
         console.log("Running python code", code);
