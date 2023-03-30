@@ -49,6 +49,10 @@ function App() { // god awful code, but it works lmao
             setInput(input + "  ");
             return;
         }
+        if (button === "{space}") {
+            setInput(input + " ");
+            return;
+        }
         if (button === "{bksp}") {
             setInput(input.slice(0, -1));
             return;
