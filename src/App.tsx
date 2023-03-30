@@ -2,9 +2,10 @@ import React, {useEffect, useRef, useState} from 'react'
 import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import {Box, Button, FormControlLabel, FormGroup, Modal, Stack, Switch} from "@mui/material";
+import {Box, Button, FormControlLabel, FormGroup, Modal, Popover, Stack, Switch, Typography} from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import IosShareIcon from '@mui/icons-material/IosShare';
 
 import './App.css'
 import '@fontsource/roboto/300.css';
@@ -29,6 +30,8 @@ function App() { // god awful code, but it works lmao
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
 
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+    const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
+    const [shareButton, setShareButton] = useState<HTMLButtonElement | null>(null);
 
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -55,7 +58,12 @@ function App() { // god awful code, but it works lmao
         //(A)console.log("Selection changed", selectionStart, selectionEnd);
     }, [selectionStart, selectionEnd])
     useEffect(() => {
-        exec(input)
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareCode = urlParams.get('share');
+        if (shareCode) {
+            const data = atob(shareCode);
+            setInput(data);
+        } else exec(input)
     }, [])
 
     const runScript = async (code: string) => {
@@ -210,6 +218,41 @@ function App() { // god awful code, but it works lmao
                             setEnableKeyboard(!enableKeyboard);
                         }}/>} label="Keyboard"/>
                     </FormGroup>
+                    <div>
+                        <Button
+                            variant="contained"
+                            color="info"
+                            onClick={(e) => {
+                                setShareButton(e.currentTarget)
+                                setSharePopoverOpen(true);
+                                // base64 encode the input
+                                const encoded = btoa(input);
+                                // create a new url with the encoded input
+                                const url = new URL(window.location.href);
+                                url.searchParams.set("share", encoded);
+                                // copy the url to the clipboard
+                                navigator.clipboard.writeText(url.toString());
+                            }}
+                            endIcon={<IosShareIcon/>}
+                            aria-describedby={"share-popover"}
+                        >
+                            Share
+                        </Button>
+                        <Popover
+                            id={"share-popover"}
+                            open={sharePopoverOpen}
+                            anchorEl={shareButton}
+                            onClose={() => {
+                                setSharePopoverOpen(false);
+                            }}
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                            }}
+                        >
+                            <Typography sx={{ p: 2 }}>Link copied to clipboard</Typography>
+                        </Popover>
+                    </div>
                     <Button
                         variant="contained"
                         color="info"
