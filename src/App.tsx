@@ -5,6 +5,8 @@ import CodeEditor from '@uiw/react-textarea-code-editor';
 import {
     Box,
     Button,
+    createTheme,
+    CssBaseline,
     FormControlLabel,
     FormGroup,
     Modal,
@@ -12,6 +14,7 @@ import {
     Stack,
     Switch,
     TextField,
+    ThemeProvider,
     Typography
 } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -24,6 +27,12 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Output from "./components/Output";
+import ThemeToggler from "./components/ThemeToggler";
+
+export const ColorModeContext = React.createContext({
+    toggleColorMode: () => {
+    }
+});
 
 function App() { // god awful code, but it works lmao
     const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
@@ -52,6 +61,27 @@ function App() { // god awful code, but it works lmao
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
     const [autoRunInShare, setAutoRunInShare] = useState(true);
     const [tabSpaces, setTabSpaces] = useState(tabSpacesDefault);
+    const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
+
+    const colorMode = React.useMemo(
+        () => ({
+            toggleColorMode: () => {
+                setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+            },
+        }),
+        [],
+    );
+
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode,
+                },
+            }),
+        [mode],
+    );
+
 
     function saveSettings() { // make sure to modify the useEffect below when adding new settings
         localStorage.setItem("autoRun", autoRun.toString());
@@ -226,199 +256,205 @@ function App() { // god awful code, but it works lmao
     };
 
     return (
-        <>
-            <div>
-                {settingsModalOpen && (
-                    <Modal
-                        open={settingsModalOpen}
-                        onClose={() => {
-                            setSettingsModalOpen(false);
-                        }}
-                    >
-                        <Box sx={{
-                            position: 'absolute' as 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            bgcolor: 'background.paper',
-                            border: '2px solid #000',
-                            boxShadow: 24,
-                            p: 4,
-                        }}>
-                            <FormGroup>
-                                <FormControlLabel control={<Switch checked={errorHighlighting} onChange={() => {
-                                    setErrorHighlighting(!errorHighlighting);
-                                }}/>} label="Error Highlighting"/>
-                            </FormGroup>
-                            {errorHighlighting && (
-                                <div style={{marginLeft: 20}}>
-                                    <FormGroup>
-                                        <FormControlLabel
-                                            control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
-                                                setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
-                                            }}/>}
-                                            label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
-                                    </FormGroup>
-                                </div>
-                            )}
-                            <FormGroup>
-                                <FormControlLabel control={<Switch checked={autoRunInShare} onChange={() => {
-                                    setAutoRunInShare(!autoRunInShare);
-                                }}/>} label="Auto run in shares"/>
-                            </FormGroup>
-                            <FormGroup>
-                                <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
-                                    setTabSpaces(parseInt(e.target.value));
-                                }}/>
-                            </FormGroup>
-                        </Box>
-                    </Modal>
-                )}
-                <Stack direction={"row"} spacing={2}>
-                    <FormGroup>
-                        <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
-                            setAutoRun(!autoRun);
-                        }}/>} label="Auto Run"/>
-                    </FormGroup>
-                    <FormGroup>
-                        <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
-                            setEnableKeyboard(!enableKeyboard);
-                        }}/>} label="Keyboard"/>
-                    </FormGroup>
-                    <div>
+        <ColorModeContext.Provider value={colorMode}>
+            <ThemeProvider theme={theme}>
+                <CssBaseline/>
+                <div>
+                    {settingsModalOpen && (
+                        <Modal
+                            open={settingsModalOpen}
+                            onClose={() => {
+                                setSettingsModalOpen(false);
+                            }}
+                        >
+                            <Box sx={{
+                                position: 'absolute' as 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: 400,
+                                bgcolor: 'background.paper',
+                                border: '2px solid #000',
+                                boxShadow: 24,
+                                p: 4,
+                            }}>
+                                <FormGroup>
+                                    <FormControlLabel control={<Switch checked={errorHighlighting} onChange={() => {
+                                        setErrorHighlighting(!errorHighlighting);
+                                    }}/>} label="Error Highlighting"/>
+                                </FormGroup>
+                                {errorHighlighting && (
+                                    <div style={{marginLeft: 20}}>
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
+                                                    setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
+                                                }}/>}
+                                                label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
+                                        </FormGroup>
+                                    </div>
+                                )}
+                                <FormGroup>
+                                    <FormControlLabel control={<Switch checked={autoRunInShare} onChange={() => {
+                                        setAutoRunInShare(!autoRunInShare);
+                                    }}/>} label="Auto run in shares"/>
+                                </FormGroup>
+                                <FormGroup>
+                                    <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
+                                        setTabSpaces(parseInt(e.target.value));
+                                    }}/>
+                                </FormGroup>
+                            </Box>
+                        </Modal>
+                    )}
+                    <Stack direction={"row"} spacing={2}>
+                        <FormGroup>
+                            <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
+                                setAutoRun(!autoRun);
+                            }}/>} label="Auto Run"/>
+                        </FormGroup>
+                        <FormGroup>
+                            <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
+                                setEnableKeyboard(!enableKeyboard);
+                            }}/>} label="Keyboard"/>
+                        </FormGroup>
+                        <div>
+                            <Button
+                                variant="contained"
+                                color="info"
+                                onClick={(e) => {
+                                    setShareButton(e.currentTarget)
+                                    setSharePopoverOpen(true);
+                                    setShareProcessing(true);
+                                    fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "text/plain",
+                                            "User-Agent": "PyEval - Badbird5907",
+                                        },
+                                        body: input,
+                                    }).then((res) => {
+                                        console.log({res});
+                                        if (res.status >= 200 && res.status < 300) {
+                                            res.json().then((data) => {
+                                                const key = data.key;
+                                                if (key) {
+                                                    // create a new url with the encoded input
+                                                    const url = new URL(window.location.href);
+                                                    url.searchParams.set("share", key);
+                                                    // copy the url to the clipboard
+                                                    navigator.clipboard.writeText(url.toString());
+                                                    setShareProcessing(false);
+                                                } else {
+                                                    setShareError(true);
+                                                }
+                                            });
+                                        } else {
+                                            setShareError(true);
+                                        }
+                                    }).catch((err) => {
+                                        console.error(err);
+                                        setShareError(true);
+                                    });
+                                }}
+                                endIcon={<IosShareIcon/>}
+                                aria-describedby={"share-popover"}
+                            >
+                                Share
+                            </Button>
+                            <Popover
+                                id={"share-popover"}
+                                open={sharePopoverOpen}
+                                anchorEl={shareButton}
+                                onClose={() => {
+                                    setSharePopoverOpen(false);
+                                }}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                            >
+                                <Typography
+                                    sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
+                            </Popover>
+                        </div>
                         <Button
                             variant="contained"
                             color="info"
-                            onClick={(e) => {
-                                setShareButton(e.currentTarget)
-                                setSharePopoverOpen(true);
-                                setShareProcessing(true);
-                                fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "text/plain",
-                                        "User-Agent": "PyEval - Badbird5907",
-                                    },
-                                    body: input,
-                                }).then((res) => {
-                                    console.log({res});
-                                    if (res.status >= 200 && res.status < 300) {
-                                        res.json().then((data) => {
-                                            const key = data.key;
-                                            if (key) {
-                                                // create a new url with the encoded input
-                                                const url = new URL(window.location.href);
-                                                url.searchParams.set("share", key);
-                                                // copy the url to the clipboard
-                                                navigator.clipboard.writeText(url.toString());
-                                                setShareProcessing(false);
-                                            } else {
-                                                setShareError(true);
-                                            }
-                                        });
-                                    } else {
-                                        setShareError(true);
-                                    }
-                                }).catch((err) => {
-                                    console.error(err);
-                                    setShareError(true);
-                                });
+                            onClick={() => {
+                                setSettingsModalOpen(true);
                             }}
-                            endIcon={<IosShareIcon/>}
-                            aria-describedby={"share-popover"}
+                            endIcon={<SettingsIcon/>}
                         >
-                            Share
+                            Settings
                         </Button>
-                        <Popover
-                            id={"share-popover"}
-                            open={sharePopoverOpen}
-                            anchorEl={shareButton}
-                            onClose={() => {
-                                setSharePopoverOpen(false);
+                        <Button
+                            variant="contained"
+                            color="success"
+                            onClick={async () => {
+                                await exec(input)
                             }}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'left',
-                            }}
+                            endIcon={<PlayArrowIcon/>}
                         >
-                            <Typography
-                                sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
-                        </Popover>
-                    </div>
-                    <Button
-                        variant="contained"
-                        color="info"
-                        onClick={() => {
-                            setSettingsModalOpen(true);
-                        }}
-                        endIcon={<SettingsIcon/>}
-                    >
-                        Settings
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={async () => {
-                            await exec(input)
-                        }}
-                        endIcon={<PlayArrowIcon/>}
-                    >
-                        Run
-                    </Button>
-                </Stack>
-            </div>
-            {/* Float on the top right */}
-            <div style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                zIndex: 100,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                padding: 10,
-            }}>
-                <a href={"https://github.com/Badbird5907/pyeval-web"}>
-                    Github
-                </a>
-            </div>
-            <div style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                height: "100vh",
-                width: "100vw",
-            }}>
-                <CodeEditor
-                    value={input}
-                    language="python"
-                    placeholder="Please enter code."
-                    onChange={(evn) => onChangeInput(evn)}
-                    minHeight={20}
-                    ref={textArea}
-                    style={{
-                        fontSize: 12,
-                        marginTop: 20,
-                        width: "90vw",
-                        height: "40vh",
-                        backgroundColor: "#f5f5f5",
-                        fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                    }}
-                />
-                {enableKeyboard &&
-                    <Keyboard
-                        keyboardRef={r => (keyboard.current = r)}
-                        layoutName={layoutName}
-                        onKeyPress={onKeyPress}
-                    />}
-                <div>
-                    <h3>Output</h3>
-                    <Output errorHighlighting={errorHighlighting}
-                            aggressiveErrorHighlighting={aggressiveErrorHighlighting} output={output}/>
+                            Run
+                        </Button>
+                    </Stack>
                 </div>
-            </div>
-        </>
+                {/* Float on the top right */}
+                <div style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    zIndex: 100,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    padding: 10,
+                }}>
+                    <a href={"https://github.com/Badbird5907/pyeval-web"}>
+                        Github
+                    </a>
+                    <ThemeToggler/>
+                </div>
+                <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    height: "100vh",
+                    width: "100vw",
+                }}>
+                    <div data-color-mode={mode || "dark"}>
+                        <CodeEditor
+                            value={input}
+                            language="python"
+                            placeholder="Please enter code."
+                            onChange={(evn) => onChangeInput(evn)}
+                            minHeight={20}
+                            ref={textArea}
+                            data-color-mode={mode}
+                            style={{
+                                fontSize: 12,
+                                marginTop: 20,
+                                width: "90vw",
+                                height: "40vh",
+                                fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                            }}
+                        />
+                    </div>
+                    {enableKeyboard &&
+                        <Keyboard
+                            keyboardRef={r => (keyboard.current = r)}
+                            layoutName={layoutName}
+                            onKeyPress={onKeyPress}
+                        />}
+                    <div>
+                        <h3>Output</h3>
+                        <Output errorHighlighting={errorHighlighting}
+                                aggressiveErrorHighlighting={aggressiveErrorHighlighting} output={output}/>
+                    </div>
+                </div>
+            </ThemeProvider>
+        </ColorModeContext.Provider>
     );
 }
 

@@ -6,7 +6,7 @@ interface Props {
     output: any;
 }
 
-const Output = ({errorHighlighting, aggressiveErrorHighlighting, output }: Props) => {
+const Output = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props) => {
     const errorsRegEx = [
         /Traceback \(most recent call last\):/,
         /File ".*", line .*/,
@@ -34,19 +34,14 @@ const Output = ({errorHighlighting, aggressiveErrorHighlighting, output }: Props
                                 || (output.out.indexOf(line) > 1 && output.errors && output.errors.includes(output.out.indexOf(line) - 3) && line.trim().length > 0 && line.trim().split("").every((char) => char === "^"))
                             ))) {
                             return (
-                                <>
-                                    <span style={{color: "red"}}
-                                    key={Math.random().toString()}>{line}<br/></span>
-                                </>
+                                <span style={{color: "red"}} key={Math.random().toString()}>{line}<br/></span>
                             );
                         }
                         return (
-                            <>
-                                <span key={Math.random().toString()}>
-                                    {line}
-                                    <br/>
-                                </span>
-                            </>
+                            <span key={Math.random().toString()}>
+                                {line}
+                                <br/>
+                            </span>
                         );
                     })
                 )}
