@@ -8,3 +8,4 @@ Built with [pyodide](https://pyodide.org/)
 - [x] Dark mode
 - [ ] Auto indent for ifs
 - [ ] Add more features
+- [ ] Support for other languages
