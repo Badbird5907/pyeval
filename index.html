@@ -15,6 +15,9 @@
     <script defer>
       let setup = false
       let pyodide = null
+      function input_fixed(text) {
+        return prompt(text);
+      }
       async function setup_pyodide() {
         if (!setup) {
           setup = true
@@ -28,6 +31,10 @@ import sys
 import io
 import traceback
 import json
+
+from js import input_fixed
+input = input_fixed
+__builtins__.input = input_fixed
 
 def run_code(code):
     """run specified code and return stdout, stderr, and error lines"""

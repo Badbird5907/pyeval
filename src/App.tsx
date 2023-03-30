@@ -31,6 +31,7 @@ import '@fontsource/roboto/700.css';
 import Output from "./components/Output";
 import ThemeToggler from "./components/ThemeToggler";
 import Editor from "@monaco-editor/react";
+import {MonacoDummySelectionType} from "./types/MonacoDummySelectionType";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {
@@ -49,6 +50,7 @@ function App() { // god awful code, but it works lmao
 
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
+    const [monacoSelection, setMonacoSelection] = useState<MonacoDummySelectionType | null>(null);
 
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
     const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
@@ -487,11 +489,22 @@ function App() { // god awful code, but it works lmao
                                         height="40vh"
                                         width="90vw"
                                         defaultLanguage="python"
-                                        defaultValue={input}
+                                        value={input}
                                         onChange={(evn) => onChangeInput({target: {value: evn}})}
                                         theme={mode === "dark" ? "vs-dark" : "vs"}
-                                        onMount={() => {
-                                            console.log("editor mounted");
+                                        onMount={(editor, monaco) => {
+                                            console.log("editor mounted, ", {editor, monaco});
+                                            /*
+                                              onClick={updateSelection}
+                                    onMouseUp={updateSelection}
+                                    onKeyDown={updateSelection}
+                                    onKeyUp={updateSelection}
+                                             */
+                                            editor.onDidChangeCursorSelection((e) => {
+                                                console.log("cursor selection changed, ", {e});
+                                                setSelectionEnd(e.selection.endColumn);
+                                                setSelectionStart(e.selection.startColumn);
+                                            });
                                         }}
                                     />
                                 </>
