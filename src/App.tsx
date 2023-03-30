@@ -94,9 +94,13 @@ function App() { // god awful code, but it works lmao
                 return;
             } else { // we are not selecting text, just typing
                 if (inputStr === "{bksp}") {
-                    await setInput(input.substring(0, input.length - 1)); // remove the last character
-                    await resetSelections();
-                    return;
+                    // remove the character before the selection
+                    const before = input.substring(0, selectionStart - 1); // get the text before the selection
+                    const after = input.substring(selectionEnd); // get the text after the selection
+                    await setInput(before + after); // set the input to the text before the selection + the text after the selection
+                    await setSelectionStart(selectionStart - 1); // update the selection
+                    await setSelectionEnd(selectionStart - 1);
+                    return; // Don't need to reset the selections because we are not selecting text
                 }
                 console.log("We are not selecting text");
                 const before = input.substring(0, selectionStart); // get the text before the selection
