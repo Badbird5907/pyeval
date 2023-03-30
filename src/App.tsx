@@ -22,6 +22,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import GitHubIcon from "@mui/icons-material/GitHub";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 import './App.css'
 import '@fontsource/roboto/300.css';
@@ -88,6 +89,7 @@ function App() { // god awful code, but it works lmao
             }),
         [mode],
     );
+
     function saveSettings() { // make sure to modify the useEffect below when adding new settings
         console.log("Saving settings");
         localStorage.setItem("autoRun", autoRun.toString());
@@ -162,16 +164,18 @@ function App() { // god awful code, but it works lmao
         // @ts-ignore
         return await runPython(code);
     }
+
     function updateSelection(e: any) {
         const target = e.currentTarget;
         const selectionStart = target?.selectionStart;
         const selectionEnd = target?.selectionEnd;
         console.log({e, selectionStart, selectionEnd});
-        if (selectionStart !== null && selectionStart !== undefined  && selectionEnd !== null && selectionEnd !== undefined) {
+        if (selectionStart !== null && selectionStart !== undefined && selectionEnd !== null && selectionEnd !== undefined) {
             setSelectionStart(selectionStart);
             setSelectionEnd(selectionEnd);
         }
     }
+
     const addInput = async (inputStr: string) => {
         async function resetSelections(input: string) {
             //(A)console.log("Resetting selections");
@@ -189,7 +193,7 @@ function App() { // god awful code, but it works lmao
         if (inputStr === "{enter}") {
             inputStr = "\n";
         }
-        if (selectionStart !== null && selectionStart !== undefined  && selectionEnd !== null && selectionEnd !== undefined) {
+        if (selectionStart !== null && selectionStart !== undefined && selectionEnd !== null && selectionEnd !== undefined) {
             // check out of bounds (input)
             if (selectionStart < 0 || selectionStart > input.length) {
                 console.log("Selection start is out of bounds, resetting to end");
@@ -282,7 +286,7 @@ function App() { // god awful code, but it works lmao
             return;
         }
         const res = await addInput(button);
-        console.log({ res });
+        console.log({res});
         if (autoRun) {
             await exec(res as string);
         }
@@ -452,6 +456,21 @@ function App() { // god awful code, but it works lmao
                             endIcon={<PlayArrowIcon/>}
                         >
                             Run
+                        </Button>
+                        <Button
+                            color={"error"}
+                            variant={"contained"}
+                            sx={{
+                                position: "absolute",
+                                float: "right",
+                                right: 80,
+                                flexDirection: "column",
+                            }}
+                            onClick={() => {
+                                setInput("");
+                            }}
+                        >
+                            <DeleteForeverIcon/>
                         </Button>
                     </Stack>
                 </div>
