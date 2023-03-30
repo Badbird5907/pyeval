@@ -10,3 +10,4 @@ Built with [pyodide](https://pyodide.org/)
 - [ ] Add more features
 - [ ] Support for other languages
 - [x] Switch to monaco editor
+- [ ] Option to disable print redirection
