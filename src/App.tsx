@@ -2,7 +2,8 @@ import React, {useEffect, useRef, useState} from 'react'
 import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import {Button, FormControlLabel, FormGroup, Stack, Switch} from "@mui/material";
+import {Box, Button, FormControlLabel, FormGroup, Modal, Stack, Switch} from "@mui/material";
+import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 import './App.css'
@@ -14,7 +15,7 @@ import '@fontsource/roboto/700.css';
 function App() { // god awful code, but it works lmao
     const errorsRegEx = [
         /Traceback \(most recent call last\):/,
-        /File ".*", line .* in .*/,
+        /File ".*", line .*/,
         /.*Error: .*/,
     ]; // we have to use regex because the json stderr stuff from python is a bit weird (only one line is marked as an error etc...)
     const [layoutName, setLayoutName] = useState("default");
@@ -28,6 +29,10 @@ function App() { // god awful code, but it works lmao
 
     const [autoRun, setAutoRun] = useState(true);
     const [enableKeyboard, setEnableKeyboard] = useState(true);
+    const [errorHighlighting, setErrorHighlighting] = useState(true);
+    const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
+
+    const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -160,6 +165,43 @@ function App() { // god awful code, but it works lmao
     return (
         <>
             <div>
+                {settingsModalOpen && (
+                    <Modal
+                        open={settingsModalOpen}
+                        onClose={() => {
+                            setSettingsModalOpen(false);
+                        }}
+                    >
+                        <Box sx={{
+                            position: 'absolute' as 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            border: '2px solid #000',
+                            boxShadow: 24,
+                            p: 4,
+                        }}>
+                            <FormGroup>
+                                <FormControlLabel control={<Switch checked={errorHighlighting} onChange={() => {
+                                    setErrorHighlighting(!errorHighlighting);
+                                }}/>} label="Error Highlighting"/>
+                                {errorHighlighting && (
+                                    <div style={{marginLeft: 20}}>
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
+                                                    setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
+                                                }}/>}
+                                                label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
+                                        </FormGroup>
+                                    </div>
+                                )}
+                            </FormGroup>
+                        </Box>
+                    </Modal>
+                )}
                 <p>Note: Tab = 2 spaces</p>
                 <Stack direction={"row"} spacing={2}>
                     <FormGroup>
@@ -172,6 +214,16 @@ function App() { // god awful code, but it works lmao
                             setEnableKeyboard(!enableKeyboard);
                         }}/>} label="Keyboard"/>
                     </FormGroup>
+                    <Button
+                        variant="contained"
+                        color="info"
+                        onClick={() => {
+                            setSettingsModalOpen(true);
+                        }}
+                        endIcon={<SettingsIcon/>}
+                    >
+                        Settings
+                    </Button>
                     <Button
                         variant="contained"
                         color="success"
@@ -221,10 +273,17 @@ function App() { // god awful code, but it works lmao
                             output.out.map((line: string) => {
                                 //(A)console.log(output)
                                 // check if the line is an error
-                                if (output.errors && output.errors.includes(output.out.indexOf(line)) || errorsRegEx.some((regEx) => regEx.test(line))) {
+                                // TODO: optimize this code
+                                if (errorHighlighting && (output.errors && output.errors.includes(output.out.indexOf(line)) || errorsRegEx.some((regEx) => regEx.test(line))
+                                    // check if the line starts with 4 spaces, and the previous line was an error
+                                    || aggressiveErrorHighlighting && ((output.out.indexOf(line) > 0 && output.errors && line.startsWith("    ") && (output.errors.includes(output.out.indexOf(line) - 1) || errorsRegEx.some((regEx) => regEx.test(output.out[output.out.indexOf(line) - 1]))))
+                                        // check if 3 lines above was an error and this line (trimmed) is just (1 or multiple) carets VERY JANK
+                                        || (output.out.indexOf(line) > 1 && output.errors && output.errors.includes(output.out.indexOf(line) - 3) && line.trim().length > 0 && line.trim().split("").every((char) => char === "^"))
+                                    ))) {
                                     return (
                                         <>
-                                            <span style={{color: "red"}} key={Math.random().toString()}>{line}<br/></span>
+                                            <span style={{color: "red"}}
+                                                  key={Math.random().toString()}>{line}<br/></span>
                                         </>
                                     );
                                 }
@@ -237,7 +296,7 @@ function App() { // god awful code, but it works lmao
                                     </>
                                 );
                             })
-                       )}
+                        )}
                    </pre>
                 </div>
             </div>
@@ -245,4 +304,4 @@ function App() { // god awful code, but it works lmao
     );
 }
 
-    export default App
+export default App
