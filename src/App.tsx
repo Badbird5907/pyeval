@@ -2,7 +2,18 @@ import React, {useEffect, useRef, useState} from 'react'
 import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import {Box, Button, FormControlLabel, FormGroup, Modal, Popover, Stack, Switch, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    FormControlLabel,
+    FormGroup,
+    Modal,
+    Popover,
+    Stack,
+    Switch,
+    TextField,
+    Typography
+} from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
@@ -16,6 +27,8 @@ import Output from "./components/Output";
 
 function App() { // god awful code, but it works lmao
     const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
+    const tabSpacesDefault = 2;
+
     const [layoutName, setLayoutName] = useState("default");
     const [input, setInput] = useState("print('Hello, World!')");
     const [output, setOutput] = useState<any>({});
@@ -38,28 +51,36 @@ function App() { // god awful code, but it works lmao
     const [errorHighlighting, setErrorHighlighting] = useState(true);
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
     const [autoRunInShare, setAutoRunInShare] = useState(true);
+    const [tabSpaces, setTabSpaces] = useState(tabSpacesDefault);
 
-    function saveSettings() {
+    function saveSettings() { // make sure to modify the useEffect below when adding new settings
         localStorage.setItem("autoRun", autoRun.toString());
         localStorage.setItem("enableKeyboard", enableKeyboard.toString());
         localStorage.setItem("errorHighlighting", errorHighlighting.toString());
         localStorage.setItem("aggressiveErrorHighlighting", aggressiveErrorHighlighting.toString());
         localStorage.setItem("autoRunInShare", autoRunInShare.toString());
+        if (tabSpaces !== tabSpacesDefault) {
+            localStorage.setItem("tabSpaces", tabSpaces.toString());
+        }
     }
+
     function loadSettings() {
         if ("autoRun" in localStorage) setAutoRun(localStorage.getItem("autoRun") === "true");
         if ("enableKeyboard" in localStorage) setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
         if ("errorHighlighting" in localStorage) setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
         if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
         if ("autoRunInShare" in localStorage) setAutoRunInShare(localStorage.getItem("autoRunInShare") === "true");
+        if ("tabSpaces" in localStorage) setTabSpaces(parseInt(localStorage.getItem("tabSpaces") || tabSpacesDefault.toString()));
+
         setSettingsLoaded(true);
     }
+
     useEffect(() => {
         if (!settingsLoaded) {
             return;
         }
         saveSettings();
-    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting]);
+    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces]);
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
         if (!textArea) return;
@@ -85,7 +106,7 @@ function App() { // god awful code, but it works lmao
         const urlParams = new URLSearchParams(window.location.search);
         const shareCode = urlParams.get('share');
         if (shareCode) {
-            setInput("# Loading share code..." )
+            setInput("# Loading share code...")
             if (!autoRunInShare) {
                 setAutoRun(false);
             }
@@ -117,7 +138,7 @@ function App() { // god awful code, but it works lmao
         }
 
         if (inputStr === "{tab}") {
-            inputStr = "  ";
+            inputStr = " ".repeat(tabSpaces);
         }
         if (inputStr === "{space}") {
             inputStr = " ";
@@ -228,27 +249,31 @@ function App() { // god awful code, but it works lmao
                                 <FormControlLabel control={<Switch checked={errorHighlighting} onChange={() => {
                                     setErrorHighlighting(!errorHighlighting);
                                 }}/>} label="Error Highlighting"/>
-                                {errorHighlighting && (
-                                    <div style={{marginLeft: 20}}>
-                                        <FormGroup>
-                                            <FormControlLabel
-                                                control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
-                                                    setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
-                                                }}/>}
-                                                label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
-                                        </FormGroup>
-                                    </div>
-                                )}
                             </FormGroup>
+                            {errorHighlighting && (
+                                <div style={{marginLeft: 20}}>
+                                    <FormGroup>
+                                        <FormControlLabel
+                                            control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
+                                                setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
+                                            }}/>}
+                                            label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
+                                    </FormGroup>
+                                </div>
+                            )}
                             <FormGroup>
                                 <FormControlLabel control={<Switch checked={autoRunInShare} onChange={() => {
                                     setAutoRunInShare(!autoRunInShare);
                                 }}/>} label="Auto run in shares"/>
                             </FormGroup>
+                            <FormGroup>
+                                <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
+                                    setTabSpaces(parseInt(e.target.value));
+                                }}/>
+                            </FormGroup>
                         </Box>
                     </Modal>
                 )}
-                <p>Note: Tab = 2 spaces</p>
                 <Stack direction={"row"} spacing={2}>
                     <FormGroup>
                         <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
@@ -276,7 +301,7 @@ function App() { // god awful code, but it works lmao
                                     },
                                     body: input,
                                 }).then((res) => {
-                                    console.log({ res });
+                                    console.log({res});
                                     if (res.status === 201) {
                                         res.json().then((data) => {
                                             const key = data.key;
@@ -316,7 +341,8 @@ function App() { // god awful code, but it works lmao
                                 horizontal: 'left',
                             }}
                         >
-                            <Typography sx={{ p: 2 }}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
+                            <Typography
+                                sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
                         </Popover>
                     </div>
                     <Button
@@ -371,7 +397,8 @@ function App() { // god awful code, but it works lmao
                     />}
                 <div>
                     <h3>Output</h3>
-                    <Output errorHighlighting={errorHighlighting} aggressiveErrorHighlighting={aggressiveErrorHighlighting} output={output} />
+                    <Output errorHighlighting={errorHighlighting}
+                            aggressiveErrorHighlighting={aggressiveErrorHighlighting} output={output}/>
                 </div>
             </div>
         </>
