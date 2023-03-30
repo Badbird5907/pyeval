@@ -368,6 +368,21 @@ function App() { // god awful code, but it works lmao
                     </Button>
                 </Stack>
             </div>
+            {/* Float on the top right */}
+            <div style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                zIndex: 100,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                padding: 10,
+            }}>
+                <a href={"https://github.com/Badbird5907/pyeval-web"}>
+                    Github
+                </a>
+            </div>
             <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -384,6 +399,7 @@ function App() { // god awful code, but it works lmao
                     ref={textArea}
                     style={{
                         fontSize: 12,
+                        marginTop: 20,
                         width: "90vw",
                         height: "40vh",
                         backgroundColor: "#f5f5f5",
