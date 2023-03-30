@@ -115,7 +115,12 @@ function App() { // god awful code, but it works lmao
             />
             <div>
                 <h3>Output</h3>
-                <p id={"output"}>{output}</p>
+                <p id={"output"}>
+                    {/* Replace newlines with <br/> */}
+                    {output.split("\n").map((item, key) => {
+                        return <span key={key}>{item}<br/></span>
+                    })}
+                </p>
             </div>
         </div>
     );
