@@ -13,6 +13,8 @@ function App() { // god awful code, but it works lmao
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
 
+    const [lastInput, setLastInput] = useState<number>(-1);
+
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
         if (!textArea) return;
@@ -43,8 +45,10 @@ function App() { // god awful code, but it works lmao
     }
     const addInput = async (inputStr: string) => {
         async function resetSelections() {
-            await setSelectionStart(input.length); // update the selection
-            await setSelectionEnd(input.length);
+            console.log("Resetting selections");
+            // WE ARE AWAITING THIS BECAUSE WE NEED TO WAIT FOR THE STATE TO UPDATE BEFORE WE CAN USE IT IDK IF IT ACTUALLY WORKS BUT I'VE GOTTEN RACE CONDITIONS BEFORE AND I REALLY DONT WANT TO WORK THAT OUT AAAAAAAAAAAAAAAAAAAA
+            await setSelectionStart(input.length + 1); // update the selection
+            await setSelectionEnd(input.length + 1);
         }
         if (inputStr === "{tab}") {
             inputStr = "  ";
@@ -59,13 +63,11 @@ function App() { // god awful code, but it works lmao
             // check out of bounds (input)
             if (selectionStart < 0 || selectionStart > input.length) {
                 console.log("Selection start is out of bounds, resetting to end");
-                await setSelectionStart(input.length); // WE ARE AWAITING THIS BECAUSE WE NEED TO WAIT FOR THE STATE TO UPDATE BEFORE WE CAN USE IT IDK IF IT ACTUALLY WORKS BUT I'VE GOTTEN RACE CONDITIONS BEFORE AND I REALLY DONT WANT TO WORK THAT OUT AAAAAAAAAAAAAAAAAAAA
-                await setSelectionEnd(input.length);
+                await resetSelections();
             }
             if (selectionEnd < 0 || selectionEnd > input.length) {
                 console.log("Selection end is out of bounds, resetting to end");
-                await setSelectionStart(input.length);
-                await setSelectionEnd(input.length);
+                await resetSelections();
             }
             const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
             if (hasSelection) {
@@ -91,6 +93,7 @@ function App() { // god awful code, but it works lmao
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
+                await resetSelections();
                 return; // we don't need to reset the selections because we are not selecting text
             }
         } else {
@@ -99,7 +102,7 @@ function App() { // god awful code, but it works lmao
         await resetSelections();
     }
 
-    const onKeyPress = (button: string) => {
+    const onKeyPress = async (button: string) => {
         console.log("Button pressed", button);
 
         /**
@@ -129,7 +132,8 @@ function App() { // god awful code, but it works lmao
 
         setInput(input + button);
          */
-        addInput(button);
+        await addInput(button);
+        setLastInput(Date.now());
     };
 
     const handleShift = () => {
