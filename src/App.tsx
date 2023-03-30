@@ -2,6 +2,14 @@ import React, {useEffect, useRef, useState} from 'react'
 import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
 import CodeEditor from '@uiw/react-textarea-code-editor';
+import {Button, FormControlLabel, FormGroup, Stack, Switch} from "@mui/material";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+
+import './App.css'
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 function App() { // god awful code, but it works lmao
     const [layoutName, setLayoutName] = useState("default");
@@ -13,7 +21,8 @@ function App() { // god awful code, but it works lmao
     const [selectionStart, setSelectionStart] = useState(0);
     const [selectionEnd, setSelectionEnd] = useState(0);
 
-    const [lastInput, setLastInput] = useState<number>(-1);
+    const [autoRun, setAutoRun] = useState(false);
+    const [enableKeyboard, setEnableKeyboard] = useState(true);
 
     useEffect(() => { // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -102,38 +111,21 @@ function App() { // god awful code, but it works lmao
         await resetSelections();
     }
 
+    const exec = async () => {
+        const out = await runScript(input);
+        setOutput(out);
+    }
+
     const onKeyPress = async (button: string) => {
         console.log("Button pressed", button);
-
-        /**
-         * If you want to handle the shift and caps lock buttons
-         */
         if (button === "{shift}" || button === "{lock}") {
             handleShift();
             return;
         }
-        /*
-        if (button === "{enter}") {
-            setInput(input + "\n");
-            return;
-        }
-        if (button === "{tab}") {
-            setInput(input + "  ");
-            return;
-        }
-        if (button === "{space}") {
-            setInput(input + " ");
-            return;
-        }
-        if (button === "{bksp}") {
-            setInput(input.slice(0, -1));
-            return;
-        }
-
-        setInput(input + button);
-         */
         await addInput(button);
-        setLastInput(Date.now());
+        if (autoRun) {
+            await exec();
+        }
     };
 
     const handleShift = () => {
@@ -144,61 +136,75 @@ function App() { // god awful code, but it works lmao
         const input = event.target.value;
         setInput(input);
         keyboard.current?.setInput(input);
-        const out = await runScript(input);
-        setOutput(out);
+        if (autoRun) {
+            await exec();
+        }
     };
 
     return (
-        <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            width: "100vw",
-        }}>
-            {/*
-            <textarea
-                rows={20}
-                style={{
-                    width: "90vw",
-                }}
-                value={input}
-                placeholder={"Enter python code here..."}
-                onChange={onChangeInput}
-            />
-            */}
-            <p>Note: Tab = 2 spaces</p>
-            <CodeEditor
-                value={input}
-                language="python"
-                placeholder="Please enter code."
-                onChange={(evn) => onChangeInput(evn)}
-                minHeight={20}
-                ref={textArea}
-                style={{
-                    fontSize: 12,
-                    width: "90vw",
-                    height: "40vh",
-                    backgroundColor: "#f5f5f5",
-                    fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                }}
-            />
-            <Keyboard
-                keyboardRef={r => (keyboard.current = r)}
-                layoutName={layoutName}
-                onKeyPress={onKeyPress}
-            />
-            <div>
-                <h3>Output</h3>
-                <p id={"output"}>
-                    {/* Replace newlines with <br/> */}
-                    {output.split("\n").map((item, key) => {
-                        return <span key={key}>{item}<br/></span>
-                    })}
-                </p>
-            </div>
-        </div>
+       <>
+           <div>
+               <p>Note: Tab = 2 spaces</p>
+               <Stack direction={"row"} spacing={2}>
+                   <FormGroup>
+                       <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
+                            setAutoRun(!autoRun);
+                       }} />} label="Auto Run" />
+                   </FormGroup>
+                   <FormGroup>
+                       <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
+                            setEnableKeyboard(!enableKeyboard);
+                       }} />} label="Keyboard" />
+                   </FormGroup>
+                   <Button
+                          variant="contained"
+                            color="success"
+                            onClick={exec}
+                          endIcon={<PlayArrowIcon />}
+                        >
+                            Run
+                        </Button>
+               </Stack>
+           </div>
+           <div style={{
+               display: "flex",
+               flexDirection: "column",
+               alignItems: "center",
+               height: "100vh",
+               width: "100vw",
+           }}>
+               <CodeEditor
+                   value={input}
+                   language="python"
+                   placeholder="Please enter code."
+                   onChange={(evn) => onChangeInput(evn)}
+                   minHeight={20}
+                   ref={textArea}
+                   style={{
+                       fontSize: 12,
+                       width: "90vw",
+                       height: "40vh",
+                       backgroundColor: "#f5f5f5",
+                       fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                   }}
+               />
+               {enableKeyboard &&
+                   <Keyboard
+                       keyboardRef={r => (keyboard.current = r)}
+                       layoutName={layoutName}
+                       onKeyPress={onKeyPress}
+                   />}
+               <div>
+                   <h3>Output</h3>
+                   <p id={"output"}>
+                       {/* Replace newlines with <br/> */}
+                       {output.split("\n").map((item, key) => {
+                           return <span key={key}>{item}<br/></span>
+                       })}
+                   </p>
+               </div>
+           </div>
+       </>
     );
 }
 
