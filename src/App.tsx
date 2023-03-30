@@ -102,7 +102,6 @@ function App() { // god awful code, but it works lmao
                 const before = input.substring(0, selectionStart); // get the text before the selection
                 const after = input.substring(selectionEnd); // get the text after the selection
                 await setInput(before + inputStr + after); // set the input to the text before the selection + the input + the text after the selection
-                await resetSelections();
                 return; // we don't need to reset the selections because we are not selecting text
             }
         } else {
