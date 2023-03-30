@@ -45,10 +45,10 @@ function App() { // god awful code, but it works lmao
         localStorage.setItem("aggressiveErrorHighlighting", aggressiveErrorHighlighting.toString());
     }
     function loadSettings() {
-        setAutoRun(localStorage.getItem("autoRun") === "true");
-        setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
-        setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
-        setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
+        if ("autoRun" in localStorage) setAutoRun(localStorage.getItem("autoRun") === "true");
+        if ("enableKeyboard" in localStorage) setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
+        if ("errorHighlighting" in localStorage) setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
+        if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
         setSettingsLoaded(true);
     }
     useEffect(() => {
