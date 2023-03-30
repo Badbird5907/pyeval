@@ -37,18 +37,21 @@ function App() { // god awful code, but it works lmao
     const [enableKeyboard, setEnableKeyboard] = useState(false);
     const [errorHighlighting, setErrorHighlighting] = useState(true);
     const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
+    const [autoRunInShare, setAutoRunInShare] = useState(true);
 
     function saveSettings() {
         localStorage.setItem("autoRun", autoRun.toString());
         localStorage.setItem("enableKeyboard", enableKeyboard.toString());
         localStorage.setItem("errorHighlighting", errorHighlighting.toString());
         localStorage.setItem("aggressiveErrorHighlighting", aggressiveErrorHighlighting.toString());
+        localStorage.setItem("autoRunInShare", autoRunInShare.toString());
     }
     function loadSettings() {
         if ("autoRun" in localStorage) setAutoRun(localStorage.getItem("autoRun") === "true");
         if ("enableKeyboard" in localStorage) setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
         if ("errorHighlighting" in localStorage) setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
         if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
+        if ("autoRunInShare" in localStorage) setAutoRunInShare(localStorage.getItem("autoRunInShare") === "true");
         setSettingsLoaded(true);
     }
     useEffect(() => {
@@ -83,6 +86,9 @@ function App() { // god awful code, but it works lmao
         const shareCode = urlParams.get('share');
         if (shareCode) {
             setInput("# Loading share code..." )
+            if (!autoRunInShare) {
+                setAutoRun(false);
+            }
             fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
                 if (res.status === 200) {
                     const data = await res.text();
@@ -233,6 +239,11 @@ function App() { // god awful code, but it works lmao
                                         </FormGroup>
                                     </div>
                                 )}
+                            </FormGroup>
+                            <FormGroup>
+                                <FormControlLabel control={<Switch checked={autoRunInShare} onChange={() => {
+                                    setAutoRunInShare(!autoRunInShare);
+                                }}/>} label="Auto run in shares"/>
                             </FormGroup>
                         </Box>
                     </Modal>
