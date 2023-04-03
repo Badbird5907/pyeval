@@ -356,6 +356,11 @@ function App() { // god awful code, but it works lmao
                                     }}/>} label="Use new editor"/>
                                 </FormGroup>
                                 <FormGroup>
+                                    <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
+                                        setEnableKeyboard(!enableKeyboard);
+                                    }}/>} label="Keyboard"/>
+                                </FormGroup>
+                                <FormGroup>
                                     <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
                                         setTabSpaces(parseInt(e.target.value));
                                     }}/>
@@ -371,11 +376,6 @@ function App() { // god awful code, but it works lmao
                             <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
                                 setAutoRun(!autoRun);
                             }}/>} label="Auto Run"/>
-                        </FormGroup>
-                        <FormGroup>
-                            <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
-                                setEnableKeyboard(!enableKeyboard);
-                            }}/>} label="Keyboard"/>
                         </FormGroup>
                         <div>
                             <Button
