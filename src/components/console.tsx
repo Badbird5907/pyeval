@@ -6,7 +6,7 @@ interface Props {
     output: OutputData;
 }
 
-const Output = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props) => {
+const Console = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props) => {
     const errorsRegEx = [
         /Traceback \(most recent call last\):/,
         /File ".*", line .*/,
@@ -49,4 +49,4 @@ const Output = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props)
     );
 };
 
-export default Output;
+export default Console;

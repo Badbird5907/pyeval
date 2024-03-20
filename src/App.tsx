@@ -32,7 +32,7 @@ import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
 import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
-import Output from "@/components/output";
+import Console from "@/components/console";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -483,8 +483,8 @@ function App() { // god awful code, but it works lmao
           }
           <div>
             <h3>Output</h3>
-            <Output errorHighlighting={config.errorHighlighting}
-                    aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}/>
+            <Console errorHighlighting={config.errorHighlighting}
+                     aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}/>
           </div>
         </div>
       </ThemeProvider>
