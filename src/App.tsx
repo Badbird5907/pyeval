@@ -32,6 +32,7 @@ import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
 import Output from '@/components/output';
 import { MonacoDummySelectionType } from "./types/MonacoDummySelectionType";
+import { OutputData } from "@/types/output";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -44,7 +45,7 @@ function App() { // god awful code, but it works lmao
 
   const [layoutName, setLayoutName] = useState("default");
   const [input, setInput] = useState("print('Hello, World!')");
-  const [output, setOutput] = useState<any>({});
+  const [output, setOutput] = useState<OutputData>();
   const keyboard = useRef<any>(null);
   const [textArea, setTextArea] = useState<HTMLTextAreaElement>();
 

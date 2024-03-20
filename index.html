@@ -11,18 +11,17 @@
     <meta property="og:description" content="Python interpreter fully in the browser" />
     <meta name="theme-color" content="#2b5b84">
 
-    <script defer src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <script defer>
-      let setup = false
       let pyodide = null
       function input_fixed(text) {
         return prompt(text);
       }
       async function setup_pyodide() {
-        if (!setup) {
-          setup = true
+        if (!window.setup) {
+          window.setup = true
           pyodide = await window.loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/"
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
           });
         }
         // setup pyodide environment to run code blocks as needed
