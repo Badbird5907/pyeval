@@ -427,7 +427,7 @@ function App() { // god awful code, but it works lmao
           <div data-color-mode={mode || "dark"} style={{
             resize: "vertical",
             overflow: "hidden",
-            height: "50vh"
+            height: "75vh"
           }}>
             {
               config.useFallbackEditor ? (
