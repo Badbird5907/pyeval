@@ -444,16 +444,10 @@ function App() { // god awful code, but it works lmao
                   width="90vw"
                   defaultLanguage="python"
                   value={input}
-                  onChange={(evn) => onChangeInput({target: {value: evn}})}
+                  onChange={(evn) => onChangeInput({target: { value: evn ?? "" } })}
                   theme={mode === "dark" ? "vs-dark" : "vs"}
                   onMount={(editor, monaco) => {
                     console.log("editor mounted, ", {editor, monaco});
-                    /*
-                      onClick={updateSelection}
-            onMouseUp={updateSelection}
-            onKeyDown={updateSelection}
-            onKeyUp={updateSelection}
-                     */
                     editor.onDidChangeCursorSelection((e) => {
                       console.log("cursor selection changed, ", {e});
                       setSelectionEnd(e.selection.endColumn);
