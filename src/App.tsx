@@ -1,19 +1,16 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import {
-    Box,
     Button,
     createTheme,
     CssBaseline,
     FormControlLabel,
     FormGroup, IconButton,
-    Modal,
     Popover,
     Stack,
     Switch,
-    TextField,
     ThemeProvider,
     Typography
 } from "@mui/material";
@@ -22,14 +19,16 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import GitHubIcon from "@mui/icons-material/GitHub";
 
-import './App.css'
+import '@/App.css'
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import Output from "./components/Output";
-import ThemeToggler from "./components/ThemeToggler";
+import ThemeToggler from "@/components/theme-toggle";
 import Editor from "@monaco-editor/react";
+import { Config, defaultConfig } from '@/types/config';
+import { SettingsModal } from '@/components/settings-modal';
+import Output from '@/components/output';
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {
@@ -58,14 +57,7 @@ function App() { // god awful code, but it works lmao
     const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
 
     // settings
-    const [autoRun, setAutoRun] = useState(true);
-    const [enableKeyboard, setEnableKeyboard] = useState(false);
-    const [errorHighlighting, setErrorHighlighting] = useState(true);
-    const [aggressiveErrorHighlighting, setAggressiveErrorHighlighting] = useState(true);
-    const [autoRunInShare, setAutoRunInShare] = useState(true);
-    const [tabSpaces, setTabSpaces] = useState(tabSpacesDefault);
-    const [customTheme, setCustomTheme] = useState<'light' | 'dark'>('dark');
-    const [useNewEditor, setUseNewEditor] = useState(true);
+    const [config, setConfig] = useState<Config>(defaultConfig)
 
     const colorMode = React.useMemo(
         () => ({
@@ -89,38 +81,14 @@ function App() { // god awful code, but it works lmao
 
     function saveSettings() { // make sure to modify the useEffect below when adding new settings
         console.log("Saving settings");
-        localStorage.setItem("autoRun", autoRun.toString());
-        localStorage.setItem("enableKeyboard", enableKeyboard.toString());
-        localStorage.setItem("errorHighlighting", errorHighlighting.toString());
-        localStorage.setItem("aggressiveErrorHighlighting", aggressiveErrorHighlighting.toString());
-        localStorage.setItem("autoRunInShare", autoRunInShare.toString());
-        if (tabSpaces !== tabSpacesDefault) {
-            localStorage.setItem("tabSpaces", tabSpaces.toString());
-        }
-        if (customTheme !== 'dark') { // jank
-            localStorage.setItem("customTheme", customTheme.toString());
-        } else {
-            localStorage.removeItem("customTheme");
-        }
-        if (!useNewEditor) { // we want to change or delete this setting in the future
-            localStorage.setItem("useNewEditor", useNewEditor.toString());
-        } else {
-            localStorage.removeItem("useNewEditor");
-        }
+        localStorage.setItem("config", JSON.stringify(config));
     }
 
     function loadSettings() {
-        if ("autoRun" in localStorage) setAutoRun(localStorage.getItem("autoRun") === "true");
-        if ("enableKeyboard" in localStorage) setEnableKeyboard(localStorage.getItem("enableKeyboard") === "true");
-        if ("errorHighlighting" in localStorage) setErrorHighlighting(localStorage.getItem("errorHighlighting") === "true");
-        if ("aggressiveErrorHighlighting" in localStorage) setAggressiveErrorHighlighting(localStorage.getItem("aggressiveErrorHighlighting") === "true");
-        if ("autoRunInShare" in localStorage) setAutoRunInShare(localStorage.getItem("autoRunInShare") === "true");
-        if ("tabSpaces" in localStorage) setTabSpaces(parseInt(localStorage.getItem("tabSpaces") || tabSpacesDefault.toString()));
-        if ("useNewEditor" in localStorage) setUseNewEditor(localStorage.getItem("useNewEditor") === "true");
-        if ("customTheme" in localStorage) {
-            const t = localStorage.getItem("customTheme") as 'light' | 'dark';
-            setCustomTheme(t);
-            setMode(t);
+        console.log("Loading settings");
+        const savedConfig = localStorage.getItem("config");
+        if (savedConfig) {
+            setConfig(JSON.parse(savedConfig));
         }
 
         setSettingsLoaded(true);
@@ -131,7 +99,7 @@ function App() { // god awful code, but it works lmao
             return;
         }
         saveSettings();
-    }, [autoRun, enableKeyboard, errorHighlighting, aggressiveErrorHighlighting, autoRunInShare, tabSpaces, customTheme, useNewEditor]);
+    }, [config]);
     useEffect(() => {
         // We need this code because clicking on the keyboard (outside of the textarea) makes us lose the current selection, so we need to store that
         // listen for changes to textarea.selectionStart and textarea.selectionEnd, kinda hacky
@@ -163,9 +131,6 @@ function App() { // god awful code, but it works lmao
                 if (res.status >= 200 && res.status < 300) {
                     const data = await res.text();
                     setInput(data);
-                    if (autoRunInShare) {
-                        exec(data);
-                    }
                 } else {
                     alert("Failed to load share code");
                 }
@@ -190,7 +155,7 @@ function App() { // god awful code, but it works lmao
         }
 
         if (inputStr === "{tab}") {
-            inputStr = " ".repeat(tabSpaces);
+            inputStr = " ".repeat(config.tabSpaces);
         }
         if (inputStr === "{space}") {
             inputStr = " ";
@@ -257,7 +222,7 @@ function App() { // god awful code, but it works lmao
             return;
         }
         await addInput(button);
-        if (autoRun) {
+        if (config.autoRun) {
             await exec(input);
         }
     };
@@ -266,11 +231,15 @@ function App() { // god awful code, but it works lmao
         setLayoutName(layoutName === "default" ? "shift" : "default");
     };
 
-    const onChangeInput = async (event: any) => {
+    const onChangeInput = async (event: { target: { value: string } }) => {
         const input = event.target.value;
-        await setInput(input);
+        setInput(input);
         keyboard.current?.setInput(input);
-        if (autoRun) {
+        if (input.includes("input(")) {
+            setConfig({ ...config, autoRun: false }); // disable auto run if we are using input()
+            return;
+        }
+        if (config.autoRun) {
             console.log("Auto running", input);
             await exec(input);
         }
@@ -279,73 +248,24 @@ function App() { // god awful code, but it works lmao
     return (
         <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={theme}>
-                <CssBaseline/>
+                <CssBaseline />
                 <div>
-                    {settingsModalOpen && (
-                        <Modal
-                            open={settingsModalOpen}
-                            onClose={() => {
-                                setSettingsModalOpen(false);
-                            }}
-                        >
-                            <Box sx={{
-                                position: 'absolute' as 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                width: 400,
-                                bgcolor: 'background.paper',
-                                border: '2px solid #000',
-                                boxShadow: 24,
-                                p: 4,
-                            }}>
-                                <FormGroup>
-                                    <FormControlLabel control={<Switch checked={errorHighlighting} onChange={() => {
-                                        setErrorHighlighting(!errorHighlighting);
-                                    }}/>} label="Error Highlighting"/>
-                                </FormGroup>
-                                {errorHighlighting && (
-                                    <div style={{marginLeft: 20}}>
-                                        <FormGroup>
-                                            <FormControlLabel
-                                                control={<Switch checked={aggressiveErrorHighlighting} onChange={() => {
-                                                    setAggressiveErrorHighlighting(!aggressiveErrorHighlighting);
-                                                }}/>}
-                                                label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
-                                        </FormGroup>
-                                    </div>
-                                )}
-                                <FormGroup>
-                                    <FormControlLabel control={<Switch checked={autoRunInShare} onChange={() => {
-                                        setAutoRunInShare(!autoRunInShare);
-                                    }}/>} label="Auto run in shares"/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <FormControlLabel control={<Switch checked={useNewEditor} onChange={() => {
-                                        setUseNewEditor(!useNewEditor);
-                                    }}/>} label="Use new editor"/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <TextField type={"number"} label={"Tab Spaces"} value={tabSpaces} onChange={(e) => {
-                                        setTabSpaces(parseInt(e.target.value));
-                                    }}/>
-                                </FormGroup>
-                            </Box>
-                        </Modal>
-                    )}
+                    <SettingsModal open={settingsModalOpen} close={() => {
+                        setSettingsModalOpen(false);
+                    }} config={config} saveConfig={(cfg) => setConfig(cfg)} />
                     <Stack direction={"row"} spacing={2} style={{
                         margin: 20,
                         zIndex: 1000,
                     }}>
                         <FormGroup>
-                            <FormControlLabel control={<Switch checked={autoRun} onChange={() => {
-                                setAutoRun(!autoRun);
-                            }}/>} label="Auto Run"/>
+                            <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
+                                setConfig({ ...config, autoRun: !config.autoRun });
+                            }} />} label="Auto Run" />
                         </FormGroup>
                         <FormGroup>
-                            <FormControlLabel control={<Switch checked={enableKeyboard} onChange={() => {
-                                setEnableKeyboard(!enableKeyboard);
-                            }}/>} label="Keyboard"/>
+                            <FormControlLabel control={<Switch checked={config.enableKeyboard} onChange={() => {
+                                setConfig({ ...config, enableKeyboard: !config.enableKeyboard });
+                            }} />} label="Keyboard" />
                         </FormGroup>
                         <div>
                             <Button
@@ -363,7 +283,7 @@ function App() { // god awful code, but it works lmao
                                         },
                                         body: input,
                                     }).then((res) => {
-                                        console.log({res});
+                                        console.log({ res });
                                         if (res.status >= 200 && res.status < 300) {
                                             res.json().then((data) => {
                                                 const key = data.key;
@@ -386,7 +306,7 @@ function App() { // god awful code, but it works lmao
                                         setShareError(true);
                                     });
                                 }}
-                                endIcon={<IosShareIcon/>}
+                                endIcon={<IosShareIcon />}
                                 aria-describedby={"share-popover"}
                             >
                                 Share
@@ -404,7 +324,7 @@ function App() { // god awful code, but it works lmao
                                 }}
                             >
                                 <Typography
-                                    sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
+                                    sx={{ p: 2 }}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
                             </Popover>
                         </div>
                         <Button
@@ -413,7 +333,7 @@ function App() { // god awful code, but it works lmao
                             onClick={() => {
                                 setSettingsModalOpen(true);
                             }}
-                            endIcon={<SettingsIcon/>}
+                            endIcon={<SettingsIcon />}
                         >
                             Settings
                         </Button>
@@ -423,7 +343,7 @@ function App() { // god awful code, but it works lmao
                             onClick={async () => {
                                 await exec(input)
                             }}
-                            endIcon={<PlayArrowIcon/>}
+                            endIcon={<PlayArrowIcon />}
                         >
                             Run
                         </Button>
@@ -444,9 +364,10 @@ function App() { // god awful code, but it works lmao
                         <GitHubIcon />
                     </IconButton>
                     <ThemeToggler onChange={(newTheme) => {
-                        console.log({newTheme});
-                        setCustomTheme(newTheme as 'light' | 'dark');
-                    }}/>
+                        console.log({ newTheme });
+                        // setCustomTheme(newTheme as 'light' | 'dark');
+                        setConfig({ ...config, customTheme: newTheme as 'light' | 'dark' });
+                    }} />
                 </div>
                 <div style={{
                     display: "flex",
@@ -457,21 +378,7 @@ function App() { // god awful code, but it works lmao
                 }}>
                     <div data-color-mode={mode || "dark"}>
                         {
-                            useNewEditor ? (
-                                <>
-                                    <Editor
-                                        height="40vh"
-                                        width="90vw"
-                                        defaultLanguage="python"
-                                        defaultValue={input}
-                                        onChange={(evn) => onChangeInput({target: {value: evn}})}
-                                        theme={mode === "dark" ? "vs-dark" : "vs"}
-                                        onMount={() => {
-                                            console.log("editor mounted");
-                                        }}
-                                    />
-                                </>
-                                ) : (
+                            config.useFallbackEditor ? (
                                 <CodeEditor
                                     value={input}
                                     language="python"
@@ -488,19 +395,37 @@ function App() { // god awful code, but it works lmao
                                         fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
                                     }}
                                 />
+                            ) : (
+                                <Editor
+                                    height="40vh"
+                                    width="90vw"
+                                    defaultLanguage="python"
+                                    defaultValue={input}
+                                    onChange={(value: string | undefined, _) => onChangeInput({ target: { value: value ?? "" } })}
+                                    theme={mode === "dark" ? "vs-dark" : "vs"}
+                                    onMount={() => {
+                                        console.log("editor mounted");
+                                    }}
+                                />
                             )
                         }
                     </div>
-                    {enableKeyboard &&
-                        <Keyboard
-                            keyboardRef={r => (keyboard.current = r)}
-                            layoutName={layoutName}
-                            onKeyPress={onKeyPress}
-                        />}
+                    {config.enableKeyboard &&
+                        <div style={{
+                            width: "100%",
+                            color: "black",
+                        }}>
+                            <Keyboard
+                                keyboardRef={r => (keyboard.current = r)}
+                                layoutName={layoutName}
+                                onKeyPress={onKeyPress}
+                            />
+                        </div>
+                    }
                     <div>
                         <h3>Output</h3>
-                        <Output errorHighlighting={errorHighlighting}
-                                aggressiveErrorHighlighting={aggressiveErrorHighlighting} output={output}/>
+                        <Output errorHighlighting={config.errorHighlighting}
+                            aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output} />
                     </div>
                 </div>
             </ThemeProvider>
