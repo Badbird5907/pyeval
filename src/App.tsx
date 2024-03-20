@@ -421,10 +421,14 @@ function App() { // god awful code, but it works lmao
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          height: "100vh",
+          height: "100%",
           width: "100vw",
         }}>
-          <div data-color-mode={mode || "dark"}>
+          <div data-color-mode={mode || "dark"} style={{
+            resize: "vertical",
+            overflow: "hidden",
+            height: "50vh"
+          }}>
             {
               config.useFallbackEditor ? (
                 <CodeEditor
@@ -449,7 +453,7 @@ function App() { // god awful code, but it works lmao
                 />
               ) : (
                 <Editor
-                  height="40vh"
+                  height="100%"
                   width="90vw"
                   defaultLanguage="python"
                   value={input}
