@@ -27,12 +27,12 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import ThemeToggler from "@/components/theme-toggle";
-import Output from '@/components/output';
 import Editor from "@monaco-editor/react";
 import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
 import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
+import Output from "@/components/output";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
