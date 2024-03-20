@@ -13,7 +13,12 @@ const AppVersion = () => {
       color: 'gray',
     }}>
       {env.VITE_VERCEL_ENV ?
-          <a href={`https://github.com/${env.VITE_VERCEL_GIT_REPO_OWNER}/${env.VITE_VERCEL_GIT_REPO_OWNER}/commit/${env.VITE_VERCEL_GIT_COMMIT_SHA}`}>{env.VITE_VERCEL_ENV}:vercel:{env.VITE_VERCEL_GIT_PROVIDER}:{env.VITE_VERCEL_GIT_COMMIT_REF}/{env.VITE_VERCEL_GIT_COMMIT_SHA.toString().substring(0, 7)}</a>
+          <a style={{
+            color: 'gray',
+          }}
+             href={`https://github.com/${env.VITE_VERCEL_GIT_REPO_OWNER}/${env.VITE_VERCEL_GIT_REPO_SLUG}/commit/${env.VITE_VERCEL_GIT_COMMIT_SHA}`}>
+            {env.VITE_VERCEL_ENV}:vercel:{env.VITE_VERCEL_GIT_PROVIDER}:{env.VITE_VERCEL_GIT_COMMIT_REF}/{env.VITE_VERCEL_GIT_COMMIT_SHA.toString().substring(0, 7)}
+          </a>
         : <span>Development</span>
       }
     </div>
