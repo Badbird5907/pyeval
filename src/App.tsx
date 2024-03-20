@@ -33,6 +33,7 @@ import { SettingsModal } from '@/components/settings-modal';
 import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
 import Console from "@/components/console";
+import AppVersion from "@/components/app-version";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -110,14 +111,20 @@ function App() { // god awful code, but it works lmao
     const shareCode = urlParams.get('share');
     if (shareCode){
       setInput("# Loading share code...")
-      fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
-        if (res.status >= 200 && res.status < 300){
-          const data = await res.text();
-          setInput(data);
-        } else {
-          alert("Failed to load share code");
-        }
-      });
+      const promises = [
+        window.setupPyodide(),
+        fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
+          if (res.status >= 200 && res.status < 300){
+            const data = await res.text();
+            setInput(data);
+          } else {
+            alert("Failed to load share code");
+          }
+        })
+      ];
+      Promise.all(promises).then(() => {
+        console.log("Setup complete")
+      })
     } else {
       setInput("print('Hello, World!')");
       exec(input)
@@ -279,6 +286,7 @@ function App() { // god awful code, but it works lmao
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline/>
+        <AppVersion/>
         <div>
           <SettingsModal open={settingsModalOpen} close={() => {
             setSettingsModalOpen(false);
@@ -445,7 +453,7 @@ function App() { // god awful code, but it works lmao
                   width="90vw"
                   defaultLanguage="python"
                   value={input}
-                  onChange={(evn) => onChangeInput({target: { value: evn ?? "" } })}
+                  onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
                   theme={mode === "dark" ? "vs-dark" : "vs"}
                   onMount={(editor, monaco) => {
                     console.log("editor mounted, ", {editor, monaco});

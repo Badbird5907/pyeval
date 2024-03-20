@@ -17,13 +17,13 @@
       function input_fixed(text) {
         return prompt(text);
       }
-      async function setup_pyodide() {
-        if (!window.setup) {
-          pyodide = await window.loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
-          });
-          // window.setup = true
-        }
+      async function setupPyodide() {
+        if (window.setup) return
+
+        console.log("Loading pyodide")
+        pyodide = await window.loadPyodide({
+          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+        });
         // setup pyodide environment to run code blocks as needed
         const setup_code = `
 import sys
@@ -65,7 +65,7 @@ def run_code(code):
       }
 
       async function runPython(code) {
-        await setup_pyodide()
+        await setupPyodide()
         const c = JSON.stringify(code);
         console.log({ c })
         const result = await pyodide.runPythonAsync(`run_code(${c})`)
