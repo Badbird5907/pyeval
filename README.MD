@@ -10,4 +10,5 @@ Built with [pyodide](https://pyodide.org/)
 - [ ] Add more features
 - [ ] Support for other languages
 - [x] Switch to monaco editor
+- [ ] Disable auto run if input(...) is used (configurable in settings)
 - [ ] Option to disable print redirection
