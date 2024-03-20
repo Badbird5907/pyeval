@@ -28,8 +28,10 @@ export const SettingsModal = ({ open, close, config, saveConfig }: SettingsModal
             }}>
                 <FormGroup>
                     <FormControlLabel control={<Switch checked={config.errorHighlighting} onChange={() => {
-                        config.errorHighlighting = !config.errorHighlighting;
-                        saveConfig(config);
+                        saveConfig({
+                            ...config,
+                            errorHighlighting: !config.errorHighlighting
+                        })
                     }} />} label="Error Highlighting" />
                 </FormGroup>
                 {config.errorHighlighting && (
@@ -37,8 +39,10 @@ export const SettingsModal = ({ open, close, config, saveConfig }: SettingsModal
                         <FormGroup>
                             <FormControlLabel
                                 control={<Switch checked={config.aggressiveErrorHighlighting} onChange={() => {
-                                    config.aggressiveErrorHighlighting = !config.aggressiveErrorHighlighting;
-                                    saveConfig(config);
+                                    saveConfig({
+                                        ...config,
+                                        aggressiveErrorHighlighting: !config.aggressiveErrorHighlighting
+                                    })
                                 }} />}
                                 label="Aggressive Error Highlighting (may cause performance issues? & buggy)" />
                         </FormGroup>
@@ -46,12 +50,18 @@ export const SettingsModal = ({ open, close, config, saveConfig }: SettingsModal
                 )}
                 <FormGroup>
                     <FormControlLabel control={<Switch checked={config.useFallbackEditor} onChange={() => {
-                        config.useFallbackEditor = !config.useFallbackEditor;
+                        saveConfig({
+                            ...config,
+                            useFallbackEditor: !config.useFallbackEditor
+                        })
                     }} />} label="Use fallback editor" />
                 </FormGroup>
                 <FormGroup>
                     <TextField type={"number"} label={"Tab Spaces (Virtual Keyboard)"} value={config.tabSpaces} onChange={(e) => {
-                        config.tabSpaces = parseInt(e.target.value);
+                        saveConfig({
+                            ...config,
+                            tabSpaces: parseInt(e.target.value)
+                        })
                     }} />
                 </FormGroup>
             </Box>
