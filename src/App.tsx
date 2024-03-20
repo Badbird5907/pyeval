@@ -27,11 +27,11 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import ThemeToggler from "@/components/theme-toggle";
+import Output from '@/components/output';
 import Editor from "@monaco-editor/react";
 import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
-import Output from '@/components/output';
-import { MonacoDummySelectionType } from "./types/MonacoDummySelectionType";
+import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
 
 export const ColorModeContext = React.createContext({
@@ -449,7 +449,7 @@ function App() { // god awful code, but it works lmao
                   theme={mode === "dark" ? "vs-dark" : "vs"}
                   onMount={(editor, monaco) => {
                     console.log("editor mounted, ", {editor, monaco});
-                    editor.onDidChangeCursorSelection((e) => {
+                    editor.onDidChangeCursorSelection((e: any) => {
                       console.log("cursor selection changed, ", {e});
                       setSelectionEnd(e.selection.endColumn);
                       setSelectionStart(e.selection.startColumn);

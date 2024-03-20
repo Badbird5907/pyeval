@@ -3,3 +3,4 @@ declare global {
     setup: boolean;
   }
 }
+export {};
