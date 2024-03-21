@@ -39,7 +39,7 @@ const Console = ({errorHighlighting, aggressiveErrorHighlighting, output, config
       )}
       {output && output.out && (
         // {"out": ["Hello, World!", "Traceback (most recent call last):", " File \"<exec>\", line 16, in run_code", " File \"<string>\", line 2, in <module>", "NameError: name 'error' is not defined"], "errors": [2]}
-        output.out.map((line: string) => {
+        output.out.map((line: string, i) => {
           //(A)console.log(output)
           // check if the line is an error
           // TODO: optimize this code
@@ -50,11 +50,11 @@ const Console = ({errorHighlighting, aggressiveErrorHighlighting, output, config
               || (output.out.indexOf(line) > 1 && output.errors && output.errors.includes(output.out.indexOf(line) - 3) && line.trim().length > 0 && line.trim().split("").every((char) => char === "^"))
             ))){
             return (
-              <span className={"text-red-500"} key={Math.random().toString()}>{line}<br/></span>
+              <span className={"text-red-500"} key={i}>{line}<br/></span>
             );
           }
           return (
-            <span key={Math.random().toString()}>
+            <span key={i}>
               {line}
               <br/>
             </span>
