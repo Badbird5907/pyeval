@@ -43,8 +43,6 @@ function App() { // god awful code, but it works lmao
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
-
-  // settings
   const [config, setConfig] = useState<Config>(defaultConfig)
 
   const colorMode = React.useMemo(
@@ -74,8 +72,13 @@ function App() { // god awful code, but it works lmao
   function loadSettings() {
     console.log("Loading settings");
     const savedConfig = localStorage.getItem("config");
-    if (savedConfig){
-      setConfig(JSON.parse(savedConfig));
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+      setConfig(parsed);
+
+      // sync up themes
+      setMode(parsed.customTheme);
+      theme.palette.mode = parsed.customTheme;
     }
 
     setSettingsLoaded(true);
@@ -140,68 +143,72 @@ function App() { // god awful code, but it works lmao
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
-        <CssBaseline/>
-        <SettingsModal open={settingsModalOpen} close={() => {
-          setSettingsModalOpen(false);
-        }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
-        <div className={"m-4 gap-4 flex flex-row w-full h-[4vh]"}>
-          <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
-            setConfig({...config, autoRun: !config.autoRun});
-          }}/>} label="Auto Run"/>
-          <ShareButton input={input} shareApiEndpoint={shareApiEndpoint} />
-          <Button
-            variant="contained"
-            color="info"
-            onClick={() => {
-              setSettingsModalOpen(true);
-            }}
-            endIcon={<SettingsIcon/>}
-          >
-            Settings
-          </Button>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={async () => {
-              await exec(input)
-            }}
-            endIcon={<PlayArrowIcon/>}
-          >
-            Run
-          </Button>
-          <div className={"ml-auto mr-8 flex flex-row"}>
+        <div className={theme.palette.mode}>
+          <CssBaseline/>
+          <SettingsModal open={settingsModalOpen} close={() => {
+            setSettingsModalOpen(false);
+          }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
+          <div className={"m-4 gap-4 flex flex-row w-full h-[4vh]"}>
+            <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
+              setConfig({...config, autoRun: !config.autoRun});
+            }}/>} label="Auto Run"/>
+            <ShareButton input={input} shareApiEndpoint={shareApiEndpoint} />
             <Button
-              color={"error"}
-              variant={"contained"}
+              variant="contained"
+              color="info"
               onClick={() => {
-                setInput("");
+                setSettingsModalOpen(true);
               }}
+              endIcon={<SettingsIcon/>}
             >
-              <DeleteForeverIcon/>
+              Settings
             </Button>
-            <LinkIcons />
+            <Button
+              variant="contained"
+              color="success"
+              onClick={async () => {
+                await exec(input)
+              }}
+              endIcon={<PlayArrowIcon/>}
+            >
+              Run
+            </Button>
+            <div className={"ml-auto mr-8 flex flex-row"}>
+              <Button
+                color={"error"}
+                variant={"contained"}
+                onClick={() => {
+                  setInput("");
+                }}
+              >
+                <DeleteForeverIcon/>
+              </Button>
+              <LinkIcons config={config} setConfig={(cfg) => {
+                setConfig(cfg);
+              }} />
+            </div>
           </div>
-        </div>
-        <div className={"h-[92vh]"}>
-          <ResizablePanelGroup direction={config.layout} className={"w-full h-full"}>
-            <ResizablePanel>
-              <Editor
-                height={"100%"}
-                width={"100%"}
-                defaultLanguage="python"
-                value={input}
-                onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
-                theme={mode === "dark" ? "vs-dark" : "vs"}
-              />
-            </ResizablePanel>
-            <ResizableHandle withHandle/>
-            <ResizablePanel defaultSize={30}>
-              <Console errorHighlighting={config.errorHighlighting}
-                       aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}
-                       position={config.layout} config={config}
-              />
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <div className={"h-[92vh]"}>
+            <ResizablePanelGroup direction={config.layout} className={"w-full h-full"}>
+              <ResizablePanel>
+                <Editor
+                  height={"100%"}
+                  width={"100%"}
+                  defaultLanguage="python"
+                  value={input}
+                  onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
+                  theme={mode === "dark" ? "vs-dark" : "vs"}
+                />
+              </ResizablePanel>
+              <ResizableHandle withHandle/>
+              <ResizablePanel defaultSize={30}>
+                <Console errorHighlighting={config.errorHighlighting}
+                         aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}
+                         position={config.layout} config={config}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
         </div>
       </ThemeProvider>
     </ColorModeContext.Provider>

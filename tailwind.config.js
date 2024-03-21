@@ -8,6 +8,7 @@ export default {
     preflight: false,
   },
   important: "#root",
+  darkMode: "class",
   theme: {
     extend: {},
   },
