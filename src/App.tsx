@@ -148,7 +148,7 @@ function App() { // god awful code, but it works lmao
           <SettingsModal open={settingsModalOpen} close={() => {
             setSettingsModalOpen(false);
           }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
-          <div className={"m-4 gap-4 flex flex-row w-full h-[4vh]"}>
+          <div className={"m-4 gap-4 flex flex-row w-full"}>
             <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
               setConfig({...config, autoRun: !config.autoRun});
             }}/>} label="Auto Run"/>
