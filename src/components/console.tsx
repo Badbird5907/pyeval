@@ -1,4 +1,5 @@
 import { OutputData } from "@/types/output";
+import { useEffect, useState } from "react";
 
 interface Props {
     errorHighlighting: boolean;
@@ -12,10 +13,20 @@ const Console = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props
         /File ".*", line .*/,
         /.*Error: .*/,
     ]; // we have to use regex because the json stderr stuff from python is a bit weird (only one line is marked as an error etc...)
+    const [isSetup, setIsSetup] = useState(window.setup);
+    const handleLoad = () =>{
+        setIsSetup(true);
+    };
+    useEffect(() => {
+        window.addEventListener("pyodideLoad", handleLoad)
+        return () => {
+            window.removeEventListener("pyodideLoad", handleLoad);
+        }
+    }, []);
     return (
         <>
             <pre id={"output"}>
-                {!window.setup && (
+                {!isSetup && (
                     <>
                         <p>Setting up, please wait...</p>
                     </>

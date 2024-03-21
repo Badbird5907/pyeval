@@ -289,15 +289,10 @@ function App() { // god awful code, but it works lmao
           <SettingsModal open={settingsModalOpen} close={() => {
             setSettingsModalOpen(false);
           }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
-          <Stack direction={"row"} spacing={2} style={{
-            margin: 20,
-            zIndex: 1000,
-          }}>
-            <FormGroup>
-              <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
-                setConfig({...config, autoRun: !config.autoRun});
-              }}/>} label="Auto Run"/>
-            </FormGroup>
+          <div className={"m-4 gap-4 flex flex-row w-full"}>
+            <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
+              setConfig({...config, autoRun: !config.autoRun});
+            }}/>} label="Auto Run"/>
             <div>
               <Button
                 variant="contained"
@@ -381,19 +376,14 @@ function App() { // god awful code, but it works lmao
             <Button
               color={"error"}
               variant={"contained"}
-              sx={{
-                position: "absolute",
-                float: "right",
-                right: 80,
-                flexDirection: "column",
-              }}
+              className={"ml-auto mr-20"}
               onClick={() => {
                 setInput("");
               }}
             >
               <DeleteForeverIcon/>
             </Button>
-          </Stack>
+          </div>
         </div>
         {/* Float on the top right */}
         <LinkIcons config={config} setConfig={setConfig}/>

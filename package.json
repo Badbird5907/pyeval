@@ -9,12 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.12",
     "@monaco-editor/react": "^4.4.6",
     "@mui/icons-material": "^5.11.11",
-    "@mui/material": "^5.11.15",
+    "@mui/material": "^5.15.14",
     "@typefox/pyright-browser": "^1.1.299",
     "@uiw/react-textarea-code-editor": "^3.0.2",
     "pyodide": "^0.25.0",

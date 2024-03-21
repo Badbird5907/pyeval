@@ -31,12 +31,12 @@ import io
 import traceback
 import json
 
-from js import input_fixed
-from js import window
+from js import input_fixed, window, Event
 input = input_fixed
 __builtins__.input = input_fixed
 
 window.setup = True # Setup finished
+window.dispatchEvent(Event.new("pyodideLoad"))
 
 def run_code(code):
     """run specified code and return stdout, stderr, and error lines"""
