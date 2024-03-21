@@ -5,7 +5,6 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import React, { useEffect, useState } from 'react'
-import "react-simple-keyboard/build/css/index.css";
 import {
   Button,
   createTheme,
@@ -180,7 +179,7 @@ function App() { // god awful code, but it works lmao
             >
               <DeleteForeverIcon/>
             </Button>
-            <LinkIcons config={config} setConfig={setConfig}/>
+            <LinkIcons />
           </div>
         </div>
         <div className={"h-[92vh]"}>
