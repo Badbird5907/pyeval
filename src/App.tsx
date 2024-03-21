@@ -18,7 +18,6 @@ import {
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
-import GitHubIcon from "@mui/icons-material/GitHub";
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 import '@/App.css'
@@ -26,7 +25,6 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import ThemeToggler from "@/components/theme-toggle";
 import Editor from "@monaco-editor/react";
 import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
@@ -34,6 +32,7 @@ import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
 import Console from "@/components/console";
 import AppVersion from "@/components/app-version";
+import LinkIcons from '@/components/link-icons';
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -133,8 +132,7 @@ function App() { // god awful code, but it works lmao
 
   const runScript = async (code: string) => {
     console.log("Running python code", code);
-    // @ts-ignore
-    return await runPython(code);
+    return await window.runPython(code);
   }
 
   function updateSelection(e: any) {
@@ -398,37 +396,9 @@ function App() { // god awful code, but it works lmao
           </Stack>
         </div>
         {/* Float on the top right */}
-        <div style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          zIndex: 100,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          padding: 10,
-        }}>
-          <IconButton sx={{ml: 1}} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
-            <GitHubIcon/>
-          </IconButton>
-          <ThemeToggler onChange={(newTheme) => {
-            console.log({newTheme});
-            // setCustomTheme(newTheme as 'light' | 'dark');
-            setConfig({...config, customTheme: newTheme as 'light' | 'dark'});
-          }}/>
-        </div>
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          height: "100%",
-          width: "100vw",
-        }}>
-          <div data-color-mode={mode || "dark"} style={{
-            resize: "vertical",
-            overflow: "hidden",
-            height: "75vh"
-          }}>
+        <LinkIcons config={config} setConfig={setConfig}/>
+        <div className={"flex flex-col items-center justify-center gap-4"}>
+          <div data-color-mode={mode || "dark"} className={"resize-y overflow-hidden h-[75vh]"} >
             {
               config.useFallbackEditor ? (
                 <CodeEditor
@@ -472,11 +442,7 @@ function App() { // god awful code, but it works lmao
             }
           </div>
           {config.enableKeyboard &&
-              <div style={{
-                width: "100%",
-                color: "black",
-              }}>
-
+              <div className={"text-black w-full"}>
                   <Keyboard
                       keyboardRef={r => (keyboard.current = r)}
                       layoutName={layoutName}
