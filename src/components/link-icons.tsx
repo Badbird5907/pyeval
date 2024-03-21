@@ -10,7 +10,7 @@ type LinkIconsProps = {
 }
 const LinkIcons = ({ config, setConfig }: LinkIconsProps) => {
   return (
-    <div className={"absolute top-0 right-0 z-100 flex flex-col p-2"}>
+    <div>
       <IconButton sx={{ml: 1}} target={"_blank"} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
         <GitHubIcon/>
       </IconButton>

@@ -1,3 +1,4 @@
+import { Config } from "@/types/config";
 import { OutputData } from "@/types/output";
 import { useEffect, useState } from "react";
 
@@ -5,9 +6,11 @@ interface Props {
   errorHighlighting: boolean;
   aggressiveErrorHighlighting: boolean;
   output: OutputData;
+  position: "vertical" | "horizontal";
+  config: Config;
 }
 
-const Console = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props) => {
+const Console = ({errorHighlighting, aggressiveErrorHighlighting, output, config}: Props) => {
   const errorsRegEx = [
     /Traceback \(most recent call last\):/,
     /File ".*", line .*/,
@@ -25,7 +28,7 @@ const Console = ({errorHighlighting, aggressiveErrorHighlighting, output}: Props
   }, []);
   return (
     <pre id={"output"} className={
-      "text-sm font-mono bg-black text-white p-4 rounded-lg overflow-x-auto border-1 border-gray-200 w-full resize-y h-[10vh]"
+      `text-sm font-mono bg-black text-white p-2 m-0 rounded-lg overflow-x-auto border-1 border-gray-200 w-full resize-y h-full`
     }>
                 {!isSetup && (
                   <>

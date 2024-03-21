@@ -6,6 +6,7 @@ export type Config = {
     tabSpaces: number;
     customTheme: 'light' | 'dark';
     useFallbackEditor: boolean;
+    layout: 'horizontal' | 'vertical';
 }
 export const defaultConfig: Config = {
     autoRun: true,
@@ -14,5 +15,6 @@ export const defaultConfig: Config = {
     aggressiveErrorHighlighting: true,
     tabSpaces: 4,
     customTheme: 'dark',
-    useFallbackEditor: false
+    useFallbackEditor: false,
+    layout: 'horizontal'
 }

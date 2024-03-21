@@ -20,7 +20,10 @@
     "pyodide": "^0.25.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-simple-keyboard": "^3.5.47"
+    "react-icons": "^5.0.1",
+    "react-resizable-panels": "^2.0.13",
+    "react-simple-keyboard": "^3.5.47",
+    "tailwind-merge": "^2.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

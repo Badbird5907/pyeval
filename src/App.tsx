@@ -1,16 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
-import Keyboard from 'react-simple-keyboard'
 import "react-simple-keyboard/build/css/index.css";
-import CodeEditor from '@uiw/react-textarea-code-editor';
 import {
   Button,
   createTheme,
   CssBaseline,
   FormControlLabel,
-  FormGroup,
-  IconButton,
   Popover,
-  Stack,
   Switch,
   ThemeProvider,
   Typography
@@ -33,6 +28,7 @@ import { OutputData } from "@/types/output";
 import Console from "@/components/console";
 import AppVersion from "@/components/app-version";
 import LinkIcons from '@/components/link-icons';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -284,176 +280,132 @@ function App() { // god awful code, but it works lmao
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline/>
-        <AppVersion/>
-        <div>
-          <SettingsModal open={settingsModalOpen} close={() => {
-            setSettingsModalOpen(false);
-          }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
-          <div className={"m-4 gap-4 flex flex-row w-full"}>
-            <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
-              setConfig({...config, autoRun: !config.autoRun});
-            }}/>} label="Auto Run"/>
-            <div>
-              <Button
-                variant="contained"
-                color="info"
-                onClick={(e) => {
-                  setShareButton(e.currentTarget)
-                  setSharePopoverOpen(true);
-                  setShareProcessing(true);
-                  fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "text/plain",
-                      "User-Agent": "PyEval - Badbird5907",
-                    },
-                    body: input,
-                  }).then((res) => {
-                    console.log({res});
-                    if (res.status >= 200 && res.status < 300){
-                      res.json().then((data) => {
-                        const key = data.key;
-                        if (key){
-                          // create a new url with the encoded input
-                          const url = new URL(window.location.href);
-                          url.searchParams.set("share", key);
-                          // copy the url to the clipboard
-                          navigator.clipboard.writeText(url.toString());
-                          setShareProcessing(false);
-                        } else {
-                          setShareError(true);
-                        }
-                      });
+        <SettingsModal open={settingsModalOpen} close={() => {
+          setSettingsModalOpen(false);
+        }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
+        <div className={"m-4 gap-4 flex flex-row w-full h-[4vh]"}>
+          <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
+            setConfig({...config, autoRun: !config.autoRun});
+          }}/>} label="Auto Run"/>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={(e) => {
+              setShareButton(e.currentTarget)
+              setSharePopoverOpen(true);
+              setShareProcessing(true);
+              fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "text/plain",
+                  "User-Agent": "PyEval - Badbird5907",
+                },
+                body: input,
+              }).then((res) => {
+                console.log({res});
+                if (res.status >= 200 && res.status < 300){
+                  res.json().then((data) => {
+                    const key = data.key;
+                    if (key){
+                      // create a new url with the encoded input
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("share", key);
+                      // copy the url to the clipboard
+                      navigator.clipboard.writeText(url.toString());
+                      setShareProcessing(false);
                     } else {
                       setShareError(true);
                     }
-                  }).catch((err) => {
-                    console.error(err);
-                    setShareError(true);
                   });
-                }}
-                endIcon={<IosShareIcon/>}
-                aria-describedby={"share-popover"}
-              >
-                Share
-              </Button>
-              <Popover
-                id={"share-popover"}
-                open={sharePopoverOpen}
-                anchorEl={shareButton}
-                onClose={() => {
-                  setSharePopoverOpen(false);
-                }}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-              >
-                <Typography
-                  sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
-              </Popover>
-            </div>
-            <Button
-              variant="contained"
-              color="info"
-              onClick={() => {
-                setSettingsModalOpen(true);
-              }}
-              endIcon={<SettingsIcon/>}
-            >
-              Settings
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={async () => {
-                await exec(input)
-              }}
-              endIcon={<PlayArrowIcon/>}
-            >
-              Run
-            </Button>
+                } else {
+                  setShareError(true);
+                }
+              }).catch((err) => {
+                console.error(err);
+                setShareError(true);
+              });
+            }}
+            endIcon={<IosShareIcon/>}
+            aria-describedby={"share-popover"}
+          >
+            Share
+          </Button>
+          <Popover
+            id={"share-popover"}
+            open={sharePopoverOpen}
+            anchorEl={shareButton}
+            onClose={() => {
+              setSharePopoverOpen(false);
+            }}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+          >
+            <Typography
+              sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
+          </Popover>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => {
+              setSettingsModalOpen(true);
+            }}
+            endIcon={<SettingsIcon/>}
+          >
+            Settings
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={async () => {
+              await exec(input)
+            }}
+            endIcon={<PlayArrowIcon/>}
+          >
+            Run
+          </Button>
+          <div className={"ml-auto mr-8 flex flex-row"}>
             <Button
               color={"error"}
               variant={"contained"}
-              className={"ml-auto mr-20"}
               onClick={() => {
                 setInput("");
               }}
             >
               <DeleteForeverIcon/>
             </Button>
+            <LinkIcons config={config} setConfig={setConfig}/>
           </div>
         </div>
-        {/* Float on the top right */}
-        <LinkIcons config={config} setConfig={setConfig}/>
-        <div className={"flex flex-col items-center justify-center gap-4"}>
-          <div data-color-mode={mode || "dark"} className={"resize-y overflow-hidden h-[70vh]"} >
-            {
-              config.useFallbackEditor ? (
-                <CodeEditor
-                  id={"code-editor"}
-                  value={input}
-                  language="python"
-                  placeholder="Please enter code."
-                  onChange={(evn) => onChangeInput(evn)}
-                  minHeight={20}
-                  onClick={updateSelection}
-                  onMouseUp={updateSelection}
-                  onKeyDown={updateSelection}
-                  onKeyUp={updateSelection}
-                  data-color-mode={mode}
-                  style={{
-                    fontSize: 12,
-                    marginTop: 20,
-                    width: "90vw",
-                    height: "40vh",
-                    fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-                  }}
-                />
-              ) : (
-                <Editor
-                  height="100%"
-                  width="90vw"
-                  defaultLanguage="python"
-                  value={input}
-                  onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
-                  theme={mode === "dark" ? "vs-dark" : "vs"}
-                  onMount={(editor, monaco) => {
-                    console.log("editor mounted, ", {editor, monaco});
-                    editor.onDidChangeCursorSelection((e: any) => {
-                      console.log("cursor selection changed, ", {e});
-                      setSelectionEnd(e.selection.endColumn);
-                      setSelectionStart(e.selection.startColumn);
-                    });
-                  }}
-                />
-              )
-            }
-          </div>
-          {config.enableKeyboard &&
-              <div className={"text-black w-full"}>
-                  <Keyboard
-                      keyboardRef={r => (keyboard.current = r)}
-                      layoutName={layoutName}
-                      onKeyPress={onKeyPress}
-                      display={{
-                        '{bksp}': '⌫',
-                        '{enter}': '↵',
-                        '{shift}': '⇧',
-                        '{lock}': '⇪',
-                        '{tab}': '⇥',
-                        '{space}': '␣',
-                      }}
-                      theme={`hg-theme-default ${mode === "dark" ? "darkTheme" : ""}`}
-                  />
-              </div>
-          }
-          <div className={"w-[90vw]"}>
-            <h3 className={"p-0 m-0"}>Output</h3>
-            <Console errorHighlighting={config.errorHighlighting}
-                     aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}/>
-          </div>
+        <div className={"h-[92vh]"}>
+          <ResizablePanelGroup direction={config.layout} className={"w-full h-full"}>
+            <ResizablePanel>
+              <Editor
+                height={"100%"}
+                width={"100%"}
+                defaultLanguage="python"
+                value={input}
+                onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
+                theme={mode === "dark" ? "vs-dark" : "vs"}
+                onMount={(editor, monaco) => {
+                  console.log("editor mounted, ", {editor, monaco});
+                  editor.onDidChangeCursorSelection((e: any) => {
+                    console.log("cursor selection changed, ", {e});
+                    setSelectionEnd(e.selection.endColumn);
+                    setSelectionStart(e.selection.startColumn);
+                  });
+                }}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle/>
+            <ResizablePanel defaultSize={30}>
+              <Console errorHighlighting={config.errorHighlighting}
+                       aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}
+                       position={config.layout} config={config}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       </ThemeProvider>
     </ColorModeContext.Provider>
