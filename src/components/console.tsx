@@ -28,7 +28,7 @@ const Console = ({errorHighlighting, aggressiveErrorHighlighting, output, config
   }, []);
   return (
     <pre id={"output"} className={
-      `text-sm font-mono bg-black text-white p-2 m-0 rounded-lg overflow-x-auto border-1 border-gray-200 w-full resize-y h-full`
+      `text-sm font-mono bg-black text-white p-2 m-0 overflow-x-auto border-1 border-gray-200 w-full resize-y h-full`
     }>
                 {!isSetup && (
                   <>
