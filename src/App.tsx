@@ -388,7 +388,7 @@ function App() { // god awful code, but it works lmao
         {/* Float on the top right */}
         <LinkIcons config={config} setConfig={setConfig}/>
         <div className={"flex flex-col items-center justify-center gap-4"}>
-          <div data-color-mode={mode || "dark"} className={"resize-y overflow-hidden h-[75vh]"} >
+          <div data-color-mode={mode || "dark"} className={"resize-y overflow-hidden h-[70vh]"} >
             {
               config.useFallbackEditor ? (
                 <CodeEditor
@@ -449,8 +449,8 @@ function App() { // god awful code, but it works lmao
                   />
               </div>
           }
-          <div>
-            <h3>Output</h3>
+          <div className={"w-[90vw]"}>
+            <h3 className={"p-0 m-0"}>Output</h3>
             <Console errorHighlighting={config.errorHighlighting}
                      aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}/>
           </div>
