@@ -2007,11 +2007,6 @@ react-resizable-panels@^2.0.13:
   resolved "https://registry.yarnpkg.com/react-resizable-panels/-/react-resizable-panels-2.0.13.tgz#53cc5a4379dc499642f841d04dd536786621398e"
   integrity sha512-DZxLv5Pc6rfuqkgQ+2JW3eLPiX3BgAAR38Cd0lXuCVHXEZLrD+3W4Nag5TqCoNgEM/4IUU9L/pLM2toOUOd6UQ==
 
-react-simple-keyboard@^3.5.47:
-  version "3.7.97"
-  resolved "https://registry.yarnpkg.com/react-simple-keyboard/-/react-simple-keyboard-3.7.97.tgz#79605e4849dc8c5c77e1204ab8b389345315e1ce"
-  integrity sha512-VqjKeuPF6dMvtnv1BBUMDmzIK9RduiD/drU4U21KihNjhf6Ht54t4YLz6HIBoa4vwKx1gsIjGc31eRzIZN6LAw==
-
 react-transition-group@^4.4.5:
   version "4.4.5"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-4.4.5.tgz#e53d4e3f3344da8521489fbef8f2581d42becdd1"

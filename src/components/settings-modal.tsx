@@ -59,30 +59,14 @@ export const SettingsModal = ({open, close, config, saveConfig}: SettingsModalPr
                   label="Aggressive Error Highlighting (may cause performance issues? & buggy)"/>
               </div>
             )}
-            <FormControlLabel control={<Switch checked={config.useFallbackEditor} onChange={() => {
-              saveConfig({
-                ...config,
-                useFallbackEditor: !config.useFallbackEditor
-              })
-            }}/>} label="Use fallback editor"/>
-
             <FormControl fullWidth>
-              <TextField type={"number"} label={"Tab Spaces (Virtual Keyboard)"} value={config.tabSpaces}
-                         onChange={(e) => {
-                           saveConfig({
-                             ...config,
-                             tabSpaces: parseInt(e.target.value)
-                           })
-                         }}/>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel id="pos-select-label">Output Position</InputLabel>
+              <InputLabel id="layout-select-label">Layout</InputLabel>
               <Select
-                labelId="pos-select-label"
-                id="pos-select"
+                labelId="layout-select-label"
+                id="layout-select"
                 value={config.layout || "horizontal"}
                 defaultValue={config.layout || "horizontal"}
-                label="Output Position"
+                label="Layout"
                 onChange={(e) => {
                   saveConfig({
                     ...config,

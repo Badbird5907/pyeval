@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import '@/App.css'
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
+import React, { useEffect, useState } from 'react'
 import "react-simple-keyboard/build/css/index.css";
 import {
   Button,
@@ -15,20 +21,14 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-import '@/App.css'
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 import Editor from "@monaco-editor/react";
 import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
-import { MonacoDummySelectionType } from "@/types/MonacoDummySelectionType";
 import { OutputData } from "@/types/output";
 import Console from "@/components/console";
-import AppVersion from "@/components/app-version";
 import LinkIcons from '@/components/link-icons';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
+import ShareButton from "@/components/share-button";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -37,23 +37,11 @@ export const ColorModeContext = React.createContext({
 
 function App() { // god awful code, but it works lmao
   const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
-  const tabSpacesDefault = 2;
 
-  const [layoutName, setLayoutName] = useState("default");
   const [input, setInput] = useState("print('Hello, World!')");
   const [output, setOutput] = useState<OutputData>();
-  const keyboard = useRef<any>(null);
-  const [textArea, setTextArea] = useState<HTMLTextAreaElement>();
-
-  const [selectionStart, setSelectionStart] = useState(0);
-  const [selectionEnd, setSelectionEnd] = useState(0);
-  const [monacoSelection, setMonacoSelection] = useState<MonacoDummySelectionType | null>(null);
 
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
-  const [shareProcessing, setShareProcessing] = useState(false);
-  const [shareError, setShareError] = useState(false);
-  const [shareButton, setShareButton] = useState<HTMLButtonElement | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
 
@@ -131,141 +119,15 @@ function App() { // god awful code, but it works lmao
     return await window.runPython(code);
   }
 
-  function updateSelection(e: any) {
-    const target = e.currentTarget;
-    const selectionStart = target?.selectionStart;
-    const selectionEnd = target?.selectionEnd;
-    console.log({e, selectionStart, selectionEnd});
-    if (selectionStart !== null && selectionStart !== undefined && selectionEnd !== null && selectionEnd !== undefined){
-      setSelectionStart(selectionStart);
-      setSelectionEnd(selectionEnd);
-    }
-  }
-
-  const addInput = async (inputStr: string) => {
-    async function resetSelections(input: string) {
-      //(A)console.log("Resetting selections");
-      // WE ARE AWAITING THIS BECAUSE WE NEED TO WAIT FOR THE STATE TO UPDATE BEFORE WE CAN USE IT IDK IF IT ACTUALLY WORKS BUT I'VE GOTTEN RACE CONDITIONS BEFORE AND I REALLY DONT WANT TO WORK THAT OUT AAAAAAAAAAAAAAAAAAAA
-      await setSelectionStart(input.length + 1); // update the selection
-      await setSelectionEnd(input.length + 1);
-    }
-
-    if (inputStr === "{tab}"){
-      inputStr = " ".repeat(config.tabSpaces);
-    }
-    if (inputStr === "{space}"){
-      inputStr = " ";
-    }
-    if (inputStr === "{enter}"){
-      inputStr = "\n";
-    }
-    if (selectionStart && selectionEnd){
-      // check out of bounds (input)
-      if (selectionStart < 0 || selectionStart > input.length){
-        console.log("Selection start is out of bounds, resetting to end");
-        await resetSelections(input);
-      }
-      if (selectionEnd < 0 || selectionEnd > input.length){
-        console.log("Selection end is out of bounds, resetting to end");
-        await resetSelections(input);
-      }
-      const hasSelection = selectionStart !== selectionEnd; // are we selecting text? or just typing?
-      if (hasSelection){
-        //(A)console.log("We are selecting text");
-        const before = input.substring(0, selectionStart); // get the text before the selection
-        const after = input.substring(selectionEnd); // get the text after the selection
-        const middle = input.substring(selectionStart, selectionEnd); // get the text we are selecting
-        const allTextSelected = selectionStart === 0 && selectionEnd === input.length; // are we selecting all the text?
-        console.log("before", before, "middle", middle, "after", after, "allTextSelected", allTextSelected);
-        // handle backspace
-        if (inputStr === "{bksp}"){
-          if (allTextSelected){
-            setInput("");
-            await resetSelections("");
-            return "";
-          }
-          const inp = before + after;
-          await setInput(inp); // set the input to the text before the selection + the text after the selection
-          await setSelectionStart(selectionStart); // set the selection to the end of the text we just added
-          await setSelectionEnd(selectionStart);
-          return inp;
-        }
-        if (allTextSelected){
-          await setInput(inputStr); // set the input to the text before the selection + the input + the text after the selection
-          await resetSelections(inputStr);
-          return inputStr;
-        }
-        const res = before + inputStr + after;
-        await setInput(res); // set the input to the text before the selection + the input + the text after the selection
-        // await resetSelections();
-        // set the selection to the end of the text we just added
-        await setSelectionStart(selectionStart + inputStr.length);
-        await setSelectionEnd(selectionStart + inputStr.length);
-        return res;
-      } else { // we are not selecting text, just typing
-        if (inputStr === "{bksp}"){
-          // remove the character before the selection
-          const before = input.substring(0, selectionStart - 1); // get the text before the selection
-          const after = input.substring(selectionEnd); // get the text after the selection
-          const res = before + after;
-          await setInput(res); // set the input to the text before the selection + the text after the selection
-          await setSelectionStart(selectionStart - 1); // update the selection
-          await setSelectionEnd(selectionStart - 1);
-          return res; // Don't need to reset the selections because we are not selecting text
-        }
-        //(A)console.log("We are not selecting text");
-        const before = input.substring(0, selectionStart); // get the text before the selection
-        const after = input.substring(selectionEnd); // get the text after the selection
-        const res = before + inputStr + after;
-        await setInput(res); // set the input to the text before the selection + the input + the text after the selection
-        if (after.length > 0){
-          await setSelectionStart(selectionStart + inputStr.length); // update the selection
-          await setSelectionEnd(selectionStart + inputStr.length);
-        }
-        return res; // we don't need to reset the selections because we are not selecting text
-      }
-    } else {
-      if (inputStr === "{bksp}"){
-        const res = input.substring(0, input.length - 1);
-        await setInput(res);
-        await resetSelections(res);
-        return res;
-      }
-      const res = input + inputStr;
-      await setInput(res);
-      await resetSelections(res);
-      return res;
-    }
-    return input;
-  }
-
   const exec = async (code: string) => {
     //(A)console.log("Executing code: ", input);
     const out = await runScript(code);
     setOutput(JSON.parse(out));
   }
 
-  const onKeyPress = async (button: string) => {
-    //(A)console.log("Button pressed", button);
-    if (button === "{shift}" || button === "{lock}"){
-      handleShift();
-      return;
-    }
-    const res = await addInput(button);
-    console.log({res});
-    if (config.autoRun){
-      await exec(res as string);
-    }
-  };
-
-  const handleShift = () => {
-    setLayoutName(layoutName === "default" ? "shift" : "default");
-  };
-
   const onChangeInput = async (event: { target: { value: string } }) => {
     const input = event.target.value;
     setInput(input);
-    keyboard.current?.setInput(input);
     if (input.includes("input(")){
       setConfig({...config, autoRun: false}); // disable auto run if we are using input()
       return;
@@ -287,64 +149,7 @@ function App() { // god awful code, but it works lmao
           <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
             setConfig({...config, autoRun: !config.autoRun});
           }}/>} label="Auto Run"/>
-          <Button
-            variant="contained"
-            color="info"
-            onClick={(e) => {
-              setShareButton(e.currentTarget)
-              setSharePopoverOpen(true);
-              setShareProcessing(true);
-              fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + "post"), {
-                method: "POST",
-                headers: {
-                  "Content-Type": "text/plain",
-                  "User-Agent": "PyEval - Badbird5907",
-                },
-                body: input,
-              }).then((res) => {
-                console.log({res});
-                if (res.status >= 200 && res.status < 300){
-                  res.json().then((data) => {
-                    const key = data.key;
-                    if (key){
-                      // create a new url with the encoded input
-                      const url = new URL(window.location.href);
-                      url.searchParams.set("share", key);
-                      // copy the url to the clipboard
-                      navigator.clipboard.writeText(url.toString());
-                      setShareProcessing(false);
-                    } else {
-                      setShareError(true);
-                    }
-                  });
-                } else {
-                  setShareError(true);
-                }
-              }).catch((err) => {
-                console.error(err);
-                setShareError(true);
-              });
-            }}
-            endIcon={<IosShareIcon/>}
-            aria-describedby={"share-popover"}
-          >
-            Share
-          </Button>
-          <Popover
-            id={"share-popover"}
-            open={sharePopoverOpen}
-            anchorEl={shareButton}
-            onClose={() => {
-              setSharePopoverOpen(false);
-            }}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-          >
-            <Typography
-              sx={{p: 2}}>{shareError ? "Error!" : shareProcessing ? "Processing..." : "Link copied to clipboard"}</Typography>
-          </Popover>
+          <ShareButton input={input} shareApiEndpoint={shareApiEndpoint} />
           <Button
             variant="contained"
             color="info"
@@ -388,14 +193,6 @@ function App() { // god awful code, but it works lmao
                 value={input}
                 onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
                 theme={mode === "dark" ? "vs-dark" : "vs"}
-                onMount={(editor, monaco) => {
-                  console.log("editor mounted, ", {editor, monaco});
-                  editor.onDidChangeCursorSelection((e: any) => {
-                    console.log("cursor selection changed, ", {e});
-                    setSelectionEnd(e.selection.endColumn);
-                    setSelectionStart(e.selection.startColumn);
-                  });
-                }}
               />
             </ResizablePanel>
             <ResizableHandle withHandle/>
