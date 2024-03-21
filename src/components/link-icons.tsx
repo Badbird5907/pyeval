@@ -14,11 +14,7 @@ const LinkIcons = ({ config, setConfig }: LinkIconsProps) => {
       <IconButton sx={{ml: 1}} target={"_blank"} href={"https://github.com/Badbird5907/pyeval-web"} color="inherit">
         <GitHubIcon/>
       </IconButton>
-      <ThemeToggler onChange={(newTheme) => {
-        console.log({newTheme});
-        // setCustomTheme(newTheme as 'light' | 'dark');
-        setConfig({...config, customTheme: newTheme as 'light' | 'dark'});
-      }}/>
+      <ThemeToggler />
     </div>
   );
 };
