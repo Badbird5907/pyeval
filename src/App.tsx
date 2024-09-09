@@ -10,10 +10,8 @@ import {
   createTheme,
   CssBaseline,
   FormControlLabel,
-  Popover,
   Switch,
   ThemeProvider,
-  Typography
 } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -24,7 +22,6 @@ import Editor from "@monaco-editor/react";
 import { Config, defaultConfig } from '@/types/config';
 import { SettingsModal } from '@/components/settings-modal';
 import { OutputData } from "@/types/output";
-import Console from "@/components/console";
 import LinkIcons from '@/components/link-icons';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
 import ShareButton from "@/components/share-button";
