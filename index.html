@@ -1,82 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/python.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/python.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <meta property="og:title" content="PyEval" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://pyeval.badbird.dev" />
-    <meta property="og:description" content="Python interpreter fully in the browser" />
+    <meta property="og:title" content="PyEval"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://pyeval.badbird.dev"/>
+    <meta property="og:description" content="Python interpreter fully in the browser"/>
     <meta name="theme-color" content="#2b5b84">
-
-    <script defer src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-    <script defer>
-      let pyodide = null
-      function input_fixed(text) {
-        return prompt(text);
-      }
-      async function setupPyodide() {
-        if (window.setup) return
-
-        console.log("Loading pyodide")
-        pyodide = await window.loadPyodide({
-          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
-        });
-        // setup pyodide environment to run code blocks as needed
-        const setup_code = `
-import sys
-import io
-import traceback
-import json
-
-from js import input_fixed, window, Event
-input = input_fixed
-__builtins__.input = input_fixed
-
-window.setup = True # Setup finished
-window.dispatchEvent(Event.new("pyodideLoad"))
-
-def run_code(code):
-    """run specified code and return stdout, stderr, and error lines"""
-    out = io.StringIO()
-    oldout = sys.stdout
-    olderr = sys.stderr
-    sys.stdout = sys.stderr = out
-    errors = []
-    try:
-        # change next line to exec(code, {}) if you want to clear vars each time
-        exec(code, {})
-    except:
-        traceback.print_exc()
-        errors = traceback.format_exc().splitlines()
-
-    sys.stdout = oldout
-    sys.stderr = olderr
-
-    result = {
-        "out": out.getvalue().splitlines(),
-        "errors": [i+1 for i, line in enumerate(out.getvalue().splitlines()) if line.startswith("Traceback")],
-    }
-    return json.dumps(result)
-`
-        return await pyodide.runPythonAsync(setup_code)
-      }
-
-      async function runPython(code) {
-        await setupPyodide()
-        const c = JSON.stringify(code);
-        console.log({ c })
-        const result = await pyodide.runPythonAsync(`run_code(${c})`)
-        console.log({ result })
-        return result;
-      }
-    </script>
+    <script src="/sync-message.js"></script>
     <title>PyEval</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

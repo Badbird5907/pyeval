@@ -36,6 +36,7 @@ const ShareButton = ({ input, shareApiEndpoint }: ShareButtonProps) => {
                   // create a new url with the encoded input
                   const url = new URL(window.location.href);
                   url.searchParams.set("share", key);
+                  console.log(url.toString())
                   // copy the url to the clipboard
                   navigator.clipboard.writeText(url.toString());
                   setShareProcessing(false);

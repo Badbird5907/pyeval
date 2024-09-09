@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import IosShareIcon from '@mui/icons-material/IosShare';
+import StopIcon from '@mui/icons-material/Stop';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 import Editor from "@monaco-editor/react";
@@ -28,17 +28,20 @@ import Console from "@/components/console";
 import LinkIcons from '@/components/link-icons';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
 import ShareButton from "@/components/share-button";
+import XTermConsole from '@/components/xterm-console';
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
   }
 });
-
+const defaultInput = `print('Hello, World!')`
 function App() { // god awful code, but it works lmao
   const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
 
-  const [input, setInput] = useState("print('Hello, World!')");
+  const [input, setInput] = useState(defaultInput);
   const [output, setOutput] = useState<OutputData>();
+
+  const [running, setRunning] = useState<boolean>(false);
 
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -97,7 +100,7 @@ function App() { // god awful code, but it works lmao
     if (shareCode){
       setInput("# Loading share code...")
       const promises = [
-        window.setupPyodide(),
+        // window.setupPyodide(),
         fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
           if (res.status >= 200 && res.status < 300){
             const data = await res.text();
@@ -111,20 +114,22 @@ function App() { // god awful code, but it works lmao
         console.log("Setup complete")
       })
     } else {
-      setInput("print('Hello, World!')");
+      setInput(defaultInput);
       exec(input)
     }
   }, []);
 
-  const runScript = async (code: string) => {
-    console.log("Running python code", code);
-    return await window.runPython(code);
-  }
 
-  const exec = async (code: string) => {
-    //(A)console.log("Executing code: ", input);
-    const out = await runScript(code);
-    setOutput(JSON.parse(out));
+  const exec = (code: string) => {
+    if (running) return;
+    console.log("Executing code: ", input);
+    setRunning(true);
+    window.dispatchEvent(new Event("clear"));
+    window.dispatchEvent(new Event("resize"));
+    window.runPython(code, {}).finally(() => {
+      console.log("Execution complete");
+      setRunning(false);
+    });
   }
 
   const onChangeInput = async (event: { target: { value: string } }) => {
@@ -136,7 +141,7 @@ function App() { // god awful code, but it works lmao
     }
     if (config.autoRun){
       console.log("Auto running", input);
-      await exec(input);
+      exec(input);
     }
   };
 
@@ -165,13 +170,17 @@ function App() { // god awful code, but it works lmao
             </Button>
             <Button
               variant="contained"
-              color="success"
-              onClick={async () => {
-                await exec(input)
+              color={running ? "error" : "success"}
+              onClick={() => {
+                exec(input)
+
+                if (running){
+                } else {
+                }
               }}
-              endIcon={<PlayArrowIcon/>}
+              endIcon={running ? <StopIcon/> : <PlayArrowIcon/>}
             >
-              Run
+              {running ? "Stop" : "Run"}
             </Button>
             <div className={"ml-auto mr-8 flex flex-row"}>
               <Button
@@ -188,7 +197,7 @@ function App() { // god awful code, but it works lmao
               }} />
             </div>
           </div>
-          <div className={"h-[92vh]"}>
+          <div className={"h-[94.3vh]"}>
             <ResizablePanelGroup direction={config.layout} className={"w-full h-full"}>
               <ResizablePanel>
                 <Editor
@@ -201,12 +210,7 @@ function App() { // god awful code, but it works lmao
                 />
               </ResizablePanel>
               <ResizableHandle withHandle/>
-              <ResizablePanel defaultSize={30}>
-                <Console errorHighlighting={config.errorHighlighting}
-                         aggressiveErrorHighlighting={config.aggressiveErrorHighlighting} output={output}
-                         position={config.layout} config={config}
-                />
-              </ResizablePanel>
+              <XTermConsole />
             </ResizablePanelGroup>
           </div>
         </div>
