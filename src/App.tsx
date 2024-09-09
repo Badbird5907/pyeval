@@ -26,6 +26,7 @@ import LinkIcons from '@/components/link-icons';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
 import ShareButton from "@/components/share-button";
 import XTermConsole from '@/components/xterm-console';
+import { interruptExecution } from '@/main';
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {
@@ -169,10 +170,10 @@ function App() { // god awful code, but it works lmao
               variant="contained"
               color={running ? "error" : "success"}
               onClick={() => {
-                exec(input)
-
                 if (running){
+                  interruptExecution();
                 } else {
+                  exec(input)
                 }
               }}
               endIcon={running ? <StopIcon/> : <PlayArrowIcon/>}

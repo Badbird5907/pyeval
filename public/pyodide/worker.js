@@ -26,6 +26,7 @@ async function setup() {
             const id = uuidv4();
             self.postMessage({ cmd: "stdin:read", id });
             const message = readMessage(channel, id);
+            self.postMessage({ cmd: "stdin:read_fin", id });
             return message;
         }
     });
@@ -44,6 +45,7 @@ self.addEventListener("message", async (msg) => {
         return;
     }
     if (msg.data.cmd === "setInterruptBuffer") {
+        console.log("SET INTERRUPT BUFFER", msg.data.interruptBuffer);
         self.pyodide.setInterruptBuffer(msg.data.interruptBuffer);
         return;
     }

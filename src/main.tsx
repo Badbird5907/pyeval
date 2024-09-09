@@ -3,27 +3,39 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App'
 import '@/index.css'
 import { StyledEngineProvider } from "@mui/material";
-import { makeChannel } from 'sync-message';
+import { makeChannel, writeMessage } from 'sync-message';
 
 export const channel = makeChannel();
 
-window.addEventListener("stdout", (data: Event) => {
-  console.log((data as CustomEvent).detail);
+window.readingStdin = null;
+window.addEventListener("stdin:read_fin", (data: Event) => {
+  console.log("finished reading stdin");
+  window.readingStdin = null;
 });
-window.interruptBuffer = new Uint8Array(new ArrayBuffer(1));
-let pyodideWorker = new Worker("pyodide/worker.js");
+window.addEventListener("stdin:read", (data: Event) => {
+  console.log("reading stdin");
+  const id = (data as CustomEvent).detail.id;
+  window.readingStdin = id;
+});
+
+const pyodideWorker = new Worker("pyodide/worker.js");
+const interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
 pyodideWorker.postMessage({
   cmd: "setInterruptBuffer",
-  interruptBuffer: window.interruptBuffer,
+  interruptBuffer: interruptBuffer,
 });
 pyodideWorker.postMessage({ cmd: "channel", channel });
+export const interruptExecution = () => {
+  console.log("Interrupting execution");
+  // 2 stands for SIGINT.
+  interruptBuffer[0] = 2;
+  if (window.readingStdin && channel) {
+    writeMessage(channel, "\x03", window.readingStdin); 
+  }
+  pyodideWorker.postMessage({ cmd: "interrupt" });
+}
 
 const callbacks: { [key: number]: (result: any) => void } = {};
-
-function interruptExecution() {
-  // 2 stands for SIGINT.
-  window.interruptBuffer[0] = 2;
-}
 
 pyodideWorker.onmessage = (event) => {
   if (!event.data.cmd) {
@@ -50,7 +62,7 @@ pyodideWorker.onmessage = (event) => {
 const runPython = (() => {
   let id = 0;
   // Clear interruptBuffer in case it was accidentally left set after previous code completed.
-  window.interruptBuffer[0] = 0;
+  interruptBuffer[0] = 0;
   return (script: string, context: any) => {
     id = (id + 1) % Number.MAX_SAFE_INTEGER;
     return new Promise((onSuccess) => {
