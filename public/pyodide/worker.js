@@ -11,16 +11,11 @@ const { readMessage, uuidv4 } = syncMessage;
 console.log("WORKER STARTED");
 console.log({ readMessage })
 
+const decoder = new TextDecoder("utf-8");
 let ready = false;
 let channel = null;
 async function setup() {
     self.pyodide = await loadPyodide({
-        stdout: (msg) => {
-            self.postMessage({ cmd: "stdout", data: msg });
-        },
-        stderr: (msg) => {
-            self.postMessage({ cmd: "stderr", data: msg });
-        },
         stdin: () => {
             console.log("STDIN READ");
             const id = uuidv4();
@@ -30,6 +25,20 @@ async function setup() {
             return message;
         }
     });
+    self.pyodide.setStdout({
+        write(buf) {
+            const written_string = decoder.decode(buf);
+            self.postMessage({ cmd: "stdout", data: written_string });
+            return buf.length;
+        }
+    })
+    self.pyodide.setStderr({
+        write(buf) {
+            const written_string = decoder.decode(buf);
+            self.postMessage({ cmd: "stderr", data: written_string });
+            return buf.length;
+        }
+    })
     ready = true;
 }
 let pyodideReadyPromise = setup();

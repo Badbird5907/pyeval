@@ -99,9 +99,9 @@ const XTermConsole = ({ }: XTermConsoleProps) => {
     const data = (e as CustomEvent).detail;
     const str = data.data.replace("\t", "  ");
     if ((e as CustomEvent).type === "stderr") {
-      term.current.writeln("\x1b[31m" + str + "\x1b[0m");
+      term.current.write("\x1b[31m" + str + "\x1b[0m");
     } else {
-      term.current.writeln(str);
+      term.current.write(str);
     }
   }
   const clear = () => {
@@ -113,6 +113,7 @@ const XTermConsole = ({ }: XTermConsoleProps) => {
 
   const handleDone = (e: Event) => {
     const { results, error } = (e as CustomEvent).detail;
+    term.current.writeln("");
     term.current.writeln(`\x1b[3${error ? "1" : "2"}mExecution completed${results ? " with return value: " + results : ""}\x1b[0m`);
   }
   const handleResize = () => {
