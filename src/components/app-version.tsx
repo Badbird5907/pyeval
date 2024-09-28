@@ -1,7 +1,7 @@
 const AppVersion = () => {
   const env = import.meta.env;
   return (
-    <div className={"fixed pt-4 bottom-0 left-0 text-gray-500"}>
+    <div className={"float-right ml-auto pr-2 text-gray-500"}>
       {env.VITE_VERCEL_ENV ? (
         <a
           className={"text-gray-500 no-underline"}

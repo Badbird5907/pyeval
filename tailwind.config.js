@@ -7,10 +7,13 @@ export default {
   important: "#root",
   darkMode: "class",
   theme: {
-    colors: {
-      vsdark: "#1E1E1E",
-      vsdarker: "#181818",
-      vserror: "#eb5c39",
+    extend: {
+      colors: {
+        vsdark: "#1E1E1E",
+        vsdarker: "#181818",
+        vserror: "#eb5c39",
+        vswarning: "#FFB61D",
+      },
     },
   },
   plugins: [],

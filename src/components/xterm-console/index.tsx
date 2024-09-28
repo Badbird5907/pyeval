@@ -14,6 +14,7 @@ const XTermConsole = () => {
   const termRef = React.useRef<HTMLDivElement>(null);
   const term = React.useRef<Terminal>(
     new Terminal({
+      convertEol: true,
       theme: {
         foreground: "#F8F8F8",
         selectionBackground: "#5DA5D533",
@@ -60,9 +61,8 @@ const XTermConsole = () => {
     if (!terminal) {
       return;
     }
-    const key = terminal.onKey((e) => {
-      // console.log("KEY", e);
-      if (e.domEvent.key === "Enter") {
+    const listener = terminal.onData((e) => {
+      if (e === "\r") {
         console.log("ENTER");
         terminal.write("\r\n");
         console.log("Current queue", queuedReads);
@@ -77,28 +77,29 @@ const XTermConsole = () => {
         console.log("Writing to buffer");
         setStdinBuffer([...stdinBuffer, currentStdin]);
         setCurrentStdin("");
-      } else if (e.domEvent.key === "Backspace") {
+      } else if (e === "\x7f") {
         terminal.write("\b \b");
         setCurrentStdin(currentStdin.slice(0, -1));
-      } else if (e.domEvent.key === "Delete") {
+      } else if (e === "\x03") {
         // delete char to the right
         terminal.write("\x1b[P");
         setCurrentStdin(currentStdin.slice(0, -1));
       } else {
         // console.log("Adding to stdin", e.key);
         // terminal.write(e.key);
-        terminal.write("\x1b[2m" + e.key + "\x1b[0m");
-        setCurrentStdin(currentStdin + e.key);
+        terminal.write("\x1b[2m" + e + "\x1b[0m");
+        setCurrentStdin(currentStdin + e);
       }
     });
     return () => {
-      key.dispose();
+      listener.dispose();
     };
   }, [term, queuedReads, stdinBuffer, currentStdin]);
 
   const handleStd = (e: Event) => {
     const data = (e as CustomEvent).detail;
     const str = data.data.replace("\t", "  ");
+    console.log(">>>> Printing", str);
     if ((e as CustomEvent).type === "stderr") {
       term.current.write("\x1b[31m" + str + "\x1b[0m");
     } else {

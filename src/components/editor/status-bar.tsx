@@ -2,9 +2,9 @@ import { useAppState } from "@/App";
 import { useLspData } from "@/components/editor/editor-lsp";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { editorColors } from "@/components/editor/colors";
 import { BiSolidErrorAlt } from "react-icons/bi";
 import { IoIosWarning } from "react-icons/io";
+import AppVersion from "@/components/app-version";
 
 export const StatusBar = () => {
   const { interpreterLoading, lspLoading } = useAppState(
@@ -34,17 +34,15 @@ export const StatusBar = () => {
         <>
           <span className="h-full flex gap-1">
             <BiSolidErrorAlt
-              style={{ color: editorColors.error }}
               title={"Errors"}
-              className="place-self-center"
+              className="place-self-center text-vserror"
             />
             {errorCount}
           </span>
           <span className="h-full flex gap-1">
             <IoIosWarning
-              style={{ color: editorColors.warning }}
               title={"Warnings"}
-              className="place-self-center"
+              className="place-self-center text-vswarning"
             />
             {warningCount}
           </span>
@@ -60,6 +58,7 @@ export const StatusBar = () => {
       <span>
         {lspLoading ? "Loading language server..." : "Language server ready"}
       </span>
+      <AppVersion />
     </div>
   );
 };

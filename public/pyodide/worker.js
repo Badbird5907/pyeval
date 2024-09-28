@@ -22,6 +22,7 @@ async function setup() {
       self.postMessage({ cmd: "stdin:read_fin", id });
       return message;
     },
+    args: ["-u"],
   });
   self.pyodide.setStdout({
     write(buf) {
