@@ -3,7 +3,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import React from "react";
 
-import { ResizablePanel } from "@/components/resizable";
+import { ResizablePanel } from "@/components/ui/resizable";
 import { channel } from "@/main";
 import { writeMessage } from "sync-message";
 

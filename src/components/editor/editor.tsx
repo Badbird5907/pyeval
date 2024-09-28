@@ -34,7 +34,7 @@ import {
   TextDocumentEdit,
 } from "vscode-languageserver-types";
 import { LspClient } from "@/components/editor/lsp/lsp-client";
-import { useConfig } from "@/types/config";
+import { useTheme } from "@/components/theme-provider";
 
 loader
   .init()
@@ -107,7 +107,7 @@ export const MonacoEditor = forwardRef(function MonacoEditor(
 ) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
-  const theme = useConfig((state) => state.customTheme);
+  const { theme } = useTheme();
 
   function handleEditorDidMount(
     editor: monaco.editor.IStandaloneCodeEditor,
