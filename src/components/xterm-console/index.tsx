@@ -171,7 +171,7 @@ const XTermConsole = () => {
       }}
       className="h-full"
     >
-      <div id="terminal" ref={termRef} className="w-full h-full bg-black"></div>
+      <div id="terminal" ref={termRef} className={"w-full h-full "}></div>
     </ResizablePanel>
   );
 };
