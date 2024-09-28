@@ -127,13 +127,6 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="eval-theme">
       <div className={"h-screen flex flex-col"}>
-        {/*<SettingsModal
-              open={settingsModalOpen}
-              close={() => {
-                setSettingsModalOpen(false);
-              }}
-              config={config}
-            />*/}
         <div className="p-4 gap-4 flex flex-row w-full">
           <Button
             variant={appState.running ? "destructive" : "success"}

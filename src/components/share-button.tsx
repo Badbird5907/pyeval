@@ -32,7 +32,7 @@ const ShareButton = ({ shareApiEndpoint }: ShareButtonProps) => {
               setSharePopoverOpen(true);
               setShareProcessing(true);
               fetch(
-                "https://corsproxy.io/?" +
+                "https://proxy.badbird.dev/?rewrite=cors&url=" +
                   encodeURIComponent(shareApiEndpoint + "post"),
                 {
                   method: "POST",
