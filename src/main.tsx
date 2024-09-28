@@ -1,14 +1,15 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from '@/App'
-import '@/index.css'
+import "@/index.css";
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App, { useAppState } from "@/app";
 import { StyledEngineProvider } from "@mui/material";
-import { makeChannel, writeMessage } from 'sync-message';
+import { makeChannel, writeMessage } from "sync-message";
 
 export const channel = makeChannel();
 
 window.readingStdin = null;
-window.addEventListener("stdin:read_fin", (data: Event) => {
+window.addEventListener("stdin:read_fin", () => {
   console.log("finished reading stdin");
   window.readingStdin = null;
 });
@@ -30,20 +31,22 @@ export const interruptExecution = () => {
   // 2 stands for SIGINT.
   interruptBuffer[0] = 2;
   if (window.readingStdin && channel) {
-    writeMessage(channel, "\x03", window.readingStdin); 
+    writeMessage(channel, "\x03", window.readingStdin);
   }
   pyodideWorker.postMessage({ cmd: "interrupt" });
-}
+};
 
-const callbacks: { [key: number]: (result: any) => void } = {};
+const callbacks: { [key: number]: (result: unknown) => void } = {};
 
 pyodideWorker.onmessage = (event) => {
   if (!event.data.cmd) {
-    console.log("E", {event})
+    console.log("E", { event });
   }
   const { cmd } = event.data;
   if (cmd === "ready") {
+    console.warn("Pyodide is ready");
     window.dispatchEvent(new Event("pyodideLoad"));
+    useAppState.getState().setInterpreterLoading(false);
     window.setup = true;
   } else {
     console.log(cmd + ":", event.data);
@@ -63,12 +66,12 @@ const runPython = (() => {
   let id = 0;
   // Clear interruptBuffer in case it was accidentally left set after previous code completed.
   interruptBuffer[0] = 0;
-  return (script: string, context: any) => {
+  return (script: string, context: unknown) => {
     id = (id + 1) % Number.MAX_SAFE_INTEGER;
     return new Promise((onSuccess) => {
       callbacks[id] = onSuccess;
       pyodideWorker.postMessage({
-        ...context,
+        ...(context as { [key: string]: unknown }),
         cmd: "run",
         code: script,
         id,
@@ -78,11 +81,10 @@ const runPython = (() => {
 })();
 window.runPython = runPython;
 
-
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
       <App />
     </StyledEngineProvider>
   </React.StrictMode>,
-)
+);

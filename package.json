@@ -1,12 +1,14 @@
 {
   "name": "pyeval-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ./src/**",
+    "lint:fix": "eslint ./src/** --fix"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -20,25 +22,42 @@
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
-    "pyodide": "^0.25.0",
+    "clsx": "^2.1.1",
+    "monaco-editor": "^0.52.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
     "react-resizable-panels": "^2.0.13",
+    "remote-web-worker": "^0.0.9",
     "sync-message": "^0.0.12",
-    "tailwind-merge": "^2.2.2"
+    "tailwind-merge": "^2.2.2",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "zustand": "5.0.0-rc.2"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
+    "@eslint/js": "^9.11.1",
+    "@types/node": "^22.7.2",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
+    "eslint": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.0",
+    "globals": "^15.9.0",
     "postcss": "^8.4.37",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2",
+    "typescript-eslint": "^8.7.0",
     "vite": "^5.1.6",
-    "vite-tsconfig-paths": "^4.3.2"
+    "vite-plugin-mkcert": "^1.17.6",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vscode-languageserver-types": "^3.17.5"
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c"
 }
