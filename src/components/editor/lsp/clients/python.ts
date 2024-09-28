@@ -73,7 +73,7 @@ export class PythonLspClient implements LspClient<PythonSessionOptions> {
     if (this._notifications?.onWaitingForInitialization) {
       this._notifications.onWaitingForInitialization(true);
     }
-    const workerScript = "/public/pyodide/pyright.worker.js";
+    const workerScript = "/pyodide/pyright.worker.js";
     console.log("Worker script:", workerScript);
     const foreground = new Worker(workerScript, {
       name: "Pyright-foreground",
