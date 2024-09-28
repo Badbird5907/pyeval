@@ -8,16 +8,14 @@ if (!crossOriginIsolated) {
 
 const syncMessage = self.syncMessage;
 const { readMessage, uuidv4 } = syncMessage;
-console.log("WORKER STARTED");
-console.log({ readMessage });
 
 const decoder = new TextDecoder("utf-8");
 let ready = false;
 let channel = null;
 async function setup() {
+  console.log(">>>>>>>> Setting up pyodide worker");
   self.pyodide = await loadPyodide({
     stdin: () => {
-      console.log("STDIN READ");
       const id = uuidv4();
       self.postMessage({ cmd: "stdin:read", id });
       const message = readMessage(channel, id);
@@ -41,24 +39,20 @@ async function setup() {
   });
   ready = true;
   self.postMessage({ cmd: "ready" });
+  console.log("<<<<<<<< Pyodide worker is ready");
 }
-setup();
+const setupPromise = setup();
 self.addEventListener("message", async (msg) => {
-  
   if (msg.data.cmd === "channel") {
     channel = msg.data.channel;
     return;
   }
+  if (!ready) {
+    await setupPromise;
+  }
   if (msg.data.cmd === "setInterruptBuffer") {
     console.log("SET INTERRUPT BUFFER", msg.data.interruptBuffer);
     self.pyodide.setInterruptBuffer(msg.data.interruptBuffer);
-    return;
-  }
-  if (msg.data.cmd === "stdin:write") {
-    console.log("STDIN WRITE", msg.data.data);
-    inputStr = msg.data.data;
-    Atomics.store(int32View, 0, 1); // Set the value in int32View to 1
-    Atomics.notify(int32View, 0, 1); // Notify the waiting thread
     return;
   }
   if (msg.data.cmd === "run") {
