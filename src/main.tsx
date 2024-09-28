@@ -2,7 +2,7 @@ import "@/index.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App, { useAppState } from "@/app";
+import App, { useAppState } from "@/App";
 import { StyledEngineProvider } from "@mui/material";
 import { makeChannel, writeMessage } from "sync-message";
 

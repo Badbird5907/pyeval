@@ -1,4 +1,4 @@
-import { useAppState } from "@/app";
+import { useAppState } from "@/App";
 import { MonacoEditor } from "@/components/editor/editor";
 import {
   PythonLspClient,

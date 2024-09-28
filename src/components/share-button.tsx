@@ -1,7 +1,7 @@
 import { Button, Popover, Typography } from "@mui/material";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import { useState } from "react";
-import { useAppState } from "@/app";
+import { useAppState } from "@/App";
 
 type ShareButtonProps = {
   shareApiEndpoint: string;

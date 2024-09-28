@@ -1,4 +1,4 @@
-import { useAppState } from "@/app";
+import { useAppState } from "@/App";
 import { useLspData } from "@/components/editor/editor-lsp";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
