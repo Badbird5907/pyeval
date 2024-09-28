@@ -219,6 +219,7 @@ export class PythonLspClient implements LspClient<PythonSessionOptions> {
     if (this._notifications?.onWaitingForInitialization) {
       this._notifications.onWaitingForInitialization(false);
     }
+    console.warn("LSP client initialized");
   }
 
   updateSettings = async (sessionOptions: PythonSessionOptions) => {
