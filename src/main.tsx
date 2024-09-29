@@ -4,8 +4,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App, { useAppState } from "@/App";
 import { makeChannel, writeMessage } from "sync-message";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
 
 export const channel = makeChannel();
+
+TimeAgo.addDefaultLocale(en)
 
 window.readingStdin = null;
 window.addEventListener("stdin:read_fin", () => {

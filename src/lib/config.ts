@@ -7,6 +7,9 @@ export type Config = {
 
   layout: "horizontal" | "vertical";
   setLayout: (layout: "horizontal" | "vertical") => void;
+
+  autoSave: boolean;
+  setAutoSave: (autoSave: boolean) => void;
 };
 export const useConfig = create<Config>()(
   persist(
@@ -18,6 +21,9 @@ export const useConfig = create<Config>()(
 
       setAutoRun: (autoRun: boolean) => set({ autoRun }),
       setLayout: (layout: "horizontal" | "vertical") => set({ layout }),
+
+      autoSave: true,
+      setAutoSave: (autoSave: boolean) => set({ autoSave }),
     }),
     {
       name: "eval-config",

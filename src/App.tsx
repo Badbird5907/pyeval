@@ -16,15 +16,17 @@ import XTermConsole from "@/components/xterm-console";
 import { interruptExecution } from "@/main";
 import { MonacoLSPEditor } from "@/components/editor/editor-lsp";
 import { create } from "zustand";
-import { useConfig } from "@/types/config";
+import { useConfig } from "@/lib/config";
 import { StatusBar } from "@/components/editor/status-bar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { FaStop, FaPlay, FaTrashAlt } from "react-icons/fa";
 import { Switch } from "@/components/ui/switch";
-import SettingsButton from "@/components/settings-button";
+import SettingsButton from "@/components/settings";
+import { SavesButton } from "@/components/saves/buttons";
+import { useSaves } from "@/lib/saves";
 
-const defaultInput = `print('Hello, World!')`;
+export const defaultInput = `print('Hello, World!')`;
 type AppState = {
   running: boolean;
   input: string;
@@ -47,7 +49,13 @@ export const useAppState = create<AppState>((set, get) => ({
 
   setRunning: (running: boolean) => set({ running }),
   setInput: (input: string) => {
-    const autoRun = useConfig.getState().autoRun;
+    const { autoRun, autoSave } = useConfig.getState();
+    if (autoSave) {
+      const saves = useSaves.getState();
+      if (saves.currentSave) {
+        saves.save(saves.currentSave, input);
+      }
+    }
     if (autoRun && input.includes("input(")) {
       console.log("Auto run disabled due to input() call");
       useConfig.setState({ autoRun: false });
@@ -109,8 +117,11 @@ function App() {
         console.log("Setup complete");
       });
     } else {
-      appState.setInput(defaultInput);
-      appState.exec(appState.input);
+      const saveState = useSaves.getState();
+      appState.setInput(saveState.getCurrentSave()?.code ?? defaultInput);
+      if (config.autoRun) {
+        appState.exec(appState.input);
+      }
     }
   }, []);
 
@@ -150,6 +161,9 @@ function App() {
           </div>
           <ShareButton shareApiEndpoint={shareApiEndpoint} />
           <SettingsButton />
+
+          <SavesButton />
+
           <div className="ml-auto mr-8 flex flex-row gap-2">
             <Button
               variant="destructive"
