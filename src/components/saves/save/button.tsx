@@ -13,7 +13,9 @@ const SaveButton = () => {
   return (
     <>
       <SaveNewDialog dialogState={[dialogOpen, setDialogOpen]} />
-      <Button round="left" variant="outline"
+      <Button
+        round="left"
+        variant="outline"
         onClick={() => {
           const current = saves.getCurrentSave();
           if (!current) {
@@ -21,7 +23,8 @@ const SaveButton = () => {
           } else {
             saves.save(current.id, useAppState.getState().input);
             setSaveBounce(true);
-            setTimeout(() => { // jank but it works and looks good
+            setTimeout(() => {
+              // jank but it works and looks good
               setSaveBounce(false);
               setSaveCheck(true);
               setTimeout(() => {
@@ -32,9 +35,15 @@ const SaveButton = () => {
         }}
         disabled={saveBounce || saveCheck}
       >
-        {saveBounce ? <FaSave className="animate-bounce" /> : saveCheck ? <FaCheck /> : <FaSave />}
+        {saveBounce ? (
+          <FaSave className="animate-bounce" />
+        ) : saveCheck ? (
+          <FaCheck />
+        ) : (
+          <FaSave />
+        )}
       </Button>
     </>
   );
-}
+};
 export default SaveButton;

@@ -2,9 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { nanoid } from "nanoid";
 import { defaultInput, useAppState } from "@/App";
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { FaX } from "react-icons/fa6";
 import { FaCheck, FaDownload, FaFileUpload, FaTrash } from "react-icons/fa";
 import ReactTimeAgo from "react-time-ago";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
@@ -18,7 +17,7 @@ export type Save = {
 
   lastModified: Date;
   createdAt: Date;
-}
+};
 
 export type Saves = {
   saves: Save[];
@@ -33,7 +32,7 @@ export type Saves = {
   getSave: (id: string) => Save | null;
   clearCurrentSave: () => void;
   isCurrentInputDirty: () => boolean;
-}
+};
 
 export const useSaves = create<Saves>()(
   persist(
@@ -100,12 +99,12 @@ export const useSaves = create<Saves>()(
           return false;
         }
         return current.code !== currentInput;
-      }
+      },
     }),
     {
       name: "eval-saves",
-    }
-  )
+    },
+  ),
 );
 
 export const savesColumns: ColumnDef<Save>[] = [
@@ -115,7 +114,7 @@ export const savesColumns: ColumnDef<Save>[] = [
     cell: ({ row }) => {
       const currentSave = useSaves((state) => state.currentSave);
       return currentSave === row.original.id && <FaCheck />;
-    }
+    },
   },
   {
     accessorKey: "name",
@@ -126,14 +125,14 @@ export const savesColumns: ColumnDef<Save>[] = [
     header: "Created At",
     cell: ({ row }) => (
       <ReactTimeAgo date={row.original.createdAt} locale="en-US" />
-    )
+    ),
   },
   {
     accessorKey: "lastModified",
     header: "Last Modified",
     cell: ({ row }) => (
       <ReactTimeAgo date={row.original.lastModified} locale="en-US" />
-    )
+    ),
   },
   {
     accessorKey: "id",
@@ -166,23 +165,30 @@ export const savesColumns: ColumnDef<Save>[] = [
           <HoverCard>
             <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
               <DialogContent>
-                <p>Are you sure you want to load this save? You have unsaved changes.</p>
+                <p>
+                  Are you sure you want to load this save? You have unsaved
+                  changes.
+                </p>
                 <div className="flex flex-row gap-2">
-                  <Button onClick={() => setConfirmDialog(false)} variant="outline">No</Button>
-                  <Button onClick={() => {
-                    useSaves.getState().loadSave(row.original.id);
-                    setConfirmDialog(false);
-                  }} variant="destructive">Yes</Button>
+                  <Button
+                    onClick={() => setConfirmDialog(false)}
+                    variant="outline"
+                  >
+                    No
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      useSaves.getState().loadSave(row.original.id);
+                      setConfirmDialog(false);
+                    }}
+                    variant="destructive"
+                  >
+                    Yes
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
-            {dirty ? (
-              loadButton
-            ) : (
-              <DialogClose>
-                {loadButton}
-              </DialogClose>
-            )}
+            {dirty ? loadButton : <DialogClose>{loadButton}</DialogClose>}
           </HoverCard>
           <Button
             onClick={() => {
@@ -198,7 +204,9 @@ export const savesColumns: ColumnDef<Save>[] = [
               a.download = `${save.name}.py`;
               a.click();
               URL.revokeObjectURL(url);
-            }} variant={"outline"} name="Download"
+            }}
+            variant={"outline"}
+            name="Download"
           >
             <FaDownload />
           </Button>
@@ -215,7 +223,7 @@ export const savesColumns: ColumnDef<Save>[] = [
             {deleteConfirm ? <FaCheck /> : <FaTrash />}
           </Button>
         </div>
-      )
-    }
-  }
-]
+      );
+    },
+  },
+];

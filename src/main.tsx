@@ -9,7 +9,7 @@ import en from "javascript-time-ago/locale/en";
 
 export const channel = makeChannel();
 
-TimeAgo.addDefaultLocale(en)
+TimeAgo.addDefaultLocale(en);
 
 window.readingStdin = null;
 window.addEventListener("stdin:read_fin", () => {

@@ -11,16 +11,17 @@ export const SavesButton = () => {
   return (
     <div className="flex flex-row">
       <SaveButton />
-      {currentSave && (
-        <NewButton />
-      )}
+      {currentSave && <NewButton />}
       <LoadButton />
 
       {currentSave && (
         <>
-        <span className="text-xs text-gray-400 ml-2 content-center">Last saved <ReactTimeAgo date={currentSave.lastModified} locale="en-US" /></span>
+          <span className="text-xs text-gray-400 ml-2 content-center">
+            Last saved{" "}
+            <ReactTimeAgo date={currentSave.lastModified} locale="en-US" />
+          </span>
         </>
       )}
     </div>
-  )
-}
+  );
+};

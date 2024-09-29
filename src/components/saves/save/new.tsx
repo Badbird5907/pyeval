@@ -12,26 +12,34 @@ export const NewButton = () => {
   const doTheThing = () => {
     saves.clearCurrentSave();
     useAppState.getState().setInput(defaultInput);
-  }
+  };
   return (
     <>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            Unsaved Changes!
-          </DialogHeader>
+          <DialogHeader>Unsaved Changes!</DialogHeader>
           <div className="flex flex-col gap-4">
-            <p>Are you sure you want to create a new project? Your current changes will be lost.</p>
+            <p>
+              Are you sure you want to create a new project? Your current
+              changes will be lost.
+            </p>
             <DialogClose>
               <div className="flex flex-col gap-2">
-                <Button onClick={doTheThing} variant="destructive">Yes</Button>
-                <Button onClick={() => setDialogOpen(false)} variant="outline">No</Button>
+                <Button onClick={doTheThing} variant="destructive">
+                  Yes
+                </Button>
+                <Button onClick={() => setDialogOpen(false)} variant="outline">
+                  No
+                </Button>
               </div>
             </DialogClose>
           </div>
         </DialogContent>
       </Dialog>
-      <Button round="none" variant={"outline"} size="icon"
+      <Button
+        round="none"
+        variant={"outline"}
+        size="icon"
         onClick={() => {
           // something changed
           if (saves.isCurrentInputDirty()) {
@@ -40,9 +48,10 @@ export const NewButton = () => {
           }
           // not dirty, just do it
           doTheThing();
-        }}>
+        }}
+      >
         <FaPlus />
       </Button>
     </>
-  )
-}
+  );
+};

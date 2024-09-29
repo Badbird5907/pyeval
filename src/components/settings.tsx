@@ -1,8 +1,22 @@
 import { FaCog } from "react-icons/fa";
-import { Dialog, DialogDescription, DialogHeader, DialogTrigger, DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogDescription,
+  DialogHeader,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useConfig } from "@/lib/config";
-import { Select , SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
 const SettingsButton = () => {
@@ -17,12 +31,17 @@ const SettingsButton = () => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>Configure the editor and other settings</DialogDescription>
+          <DialogDescription>
+            Configure the editor and other settings
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          <Select value={config.layout} onValueChange={(val) => {
-            config.setLayout(val as any);
-          }}>
+          <Select
+            value={config.layout}
+            onValueChange={(val) => {
+              config.setLayout(val as "horizontal" | "vertical");
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Layout" />
             </SelectTrigger>
