@@ -1,220 +1,197 @@
-import '@/App.css'
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
 
-import React, { useEffect, useState } from 'react'
+import { useEffect } from "react";
+
+import LinkIcons from "@/components/link-icons";
 import {
-  Button,
-  createTheme,
-  CssBaseline,
-  FormControlLabel,
-  Switch,
-  ThemeProvider,
-} from "@mui/material";
-import SettingsIcon from '@mui/icons-material/Settings';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-
-import Editor from "@monaco-editor/react";
-import { Config, defaultConfig } from '@/types/config';
-import { SettingsModal } from '@/components/settings-modal';
-import { OutputData } from "@/types/output";
-import LinkIcons from '@/components/link-icons';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/resizable";
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import ShareButton from "@/components/share-button";
-import XTermConsole from '@/components/xterm-console';
-import { interruptExecution } from '@/main';
+import XTermConsole from "@/components/xterm-console";
+import { interruptExecution } from "@/main";
+import { MonacoLSPEditor } from "@/components/editor/editor-lsp";
+import { create } from "zustand";
+import { useConfig } from "@/lib/config";
+import { StatusBar } from "@/components/editor/status-bar";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
+import { FaStop, FaPlay, FaTrashAlt } from "react-icons/fa";
+import { Switch } from "@/components/ui/switch";
+import SettingsButton from "@/components/settings";
+import { SavesButton } from "@/components/saves/buttons";
+import { useSaves } from "@/lib/saves";
 
-export const ColorModeContext = React.createContext({
-  toggleColorMode: () => {
-  }
-});
-const defaultInput = `print('Hello, World!')`
-function App() { // god awful code, but it works lmao
-  const shareApiEndpoint = "https://bytebin.lucko.me/" // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
+export const defaultInput = `print('Hello, World!')`;
+type AppState = {
+  running: boolean;
+  input: string;
+  interpreterLoading: boolean;
+  lspLoading: boolean;
 
-  const [input, setInput] = useState(defaultInput);
-  const [output, setOutput] = useState<OutputData>();
+  setRunning: (running: boolean) => void;
+  setInput: (input: string) => void;
+  setInterpreterLoading: (interpreterLoading: boolean) => void;
+  setLspLoading: (lspLoading: boolean) => void;
 
-  const [running, setRunning] = useState<boolean>(false);
+  exec: (code: string) => void;
+};
 
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
-  const [config, setConfig] = useState<Config>(defaultConfig)
+export const useAppState = create<AppState>((set, get) => ({
+  running: false,
+  input: defaultInput,
+  interpreterLoading: !window.setup,
+  lspLoading: true,
 
-  const colorMode = React.useMemo(
-    () => ({
-      toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-      },
-    }),
-    [],
-  );
-
-  const theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-        },
-      }),
-    [mode],
-  );
-
-  function saveSettings() { // make sure to modify the useEffect below when adding new settings
-    console.log("Saving settings");
-    localStorage.setItem("config", JSON.stringify(config));
-  }
-
-  function loadSettings() {
-    console.log("Loading settings");
-    const savedConfig = localStorage.getItem("config");
-    if (savedConfig) {
-      const parsed = JSON.parse(savedConfig);
-      setConfig(parsed);
-
-      // sync up themes
-      setMode(parsed.customTheme);
-      theme.palette.mode = parsed.customTheme;
+  setRunning: (running: boolean) => set({ running }),
+  setInput: (input: string) => {
+    const { autoRun, autoSave } = useConfig.getState();
+    if (autoSave) {
+      const saves = useSaves.getState();
+      if (saves.currentSave) {
+        saves.save(saves.currentSave, input);
+      }
     }
+    if (autoRun && input.includes("input(")) {
+      console.log("Auto run disabled due to input() call");
+      useConfig.setState({ autoRun: false });
+    }
+    set({ input });
+    if (autoRun) {
+      get().exec(input);
+    }
+  },
+  setInterpreterLoading: (interpreterLoading: boolean) =>
+    set({ interpreterLoading }),
+  setLspLoading: (lspLoading: boolean) => set({ lspLoading }),
 
-    setSettingsLoaded(true);
-  }
-
-  useEffect(() => {
-    if (!settingsLoaded){
+  exec: (code: string) => {
+    console.log("========== Begin Execution ==========");
+    if (get().running) {
+      console.log("Execution already in progress");
+      console.log("========== End Execution ==========");
       return;
     }
-    saveSettings();
-  }, [config]);
+    console.log("Executing code: ", get().input);
+    set({ running: true });
+    window.dispatchEvent(new Event("clear"));
+    window.dispatchEvent(new Event("resize"));
+    console.log("Executing code");
+    window.runPython(code, {}).finally(() => {
+      console.log("Execution complete");
+      set({ running: false });
+      console.log("========== End Execution ==========");
+    });
+  },
+}));
+
+function App() {
+  const shareApiEndpoint = "https://bytebin.lucko.me/"; // public instance of bytebin, using this as there is no api auth - https://github.com/lucko/bytebin
+  const appState = useAppState();
+
+  const config = useConfig();
+
   useEffect(() => {
-    loadSettings();
     const urlParams = new URLSearchParams(window.location.search);
-    const shareCode = urlParams.get('share');
-    if (shareCode){
-      setInput("# Loading share code...")
+    const shareCode = urlParams.get("share");
+    if (shareCode) {
+      appState.setInput("# Loading share code...");
       const promises = [
         // window.setupPyodide(),
-        fetch("https://corsproxy.io/?" + encodeURIComponent(shareApiEndpoint + shareCode)).then(async (res) => {
-          if (res.status >= 200 && res.status < 300){
+        fetch(
+          `https://proxy.badbird.dev/?rewrite=cors&url=${encodeURIComponent(shareApiEndpoint + shareCode)}`,
+        ).then(async (res) => {
+          if (res.status >= 200 && res.status < 300) {
             const data = await res.text();
-            setInput(data);
+            appState.setInput(data);
           } else {
             alert("Failed to load share code");
           }
-        })
+        }),
       ];
       Promise.all(promises).then(() => {
-        console.log("Setup complete")
-      })
+        console.log("Setup complete");
+      });
     } else {
-      setInput(defaultInput);
-      exec(input)
+      const saveState = useSaves.getState();
+      appState.setInput(saveState.getCurrentSave()?.code ?? defaultInput);
+      if (config.autoRun) {
+        appState.exec(appState.input);
+      }
     }
   }, []);
 
-
-  const exec = (code: string) => {
-    if (running) return;
-    console.log("Executing code: ", input);
-    setRunning(true);
-    window.dispatchEvent(new Event("clear"));
-    window.dispatchEvent(new Event("resize"));
-    window.runPython(code, {}).finally(() => {
-      console.log("Execution complete");
-      setRunning(false);
-    });
-  }
-
-  const onChangeInput = async (event: { target: { value: string } }) => {
-    const input = event.target.value;
-    setInput(input);
-    if (input.includes("input(")){
-      setConfig({...config, autoRun: false}); // disable auto run if we are using input()
-      return;
-    }
-    if (config.autoRun){
-      console.log("Auto running", input);
-      exec(input);
-    }
-  };
+  useEffect(() => {
+    const load = () => {
+      appState.setInterpreterLoading(false);
+    };
+    document.addEventListener("pyodideLoad", load);
+    return () => {
+      document.removeEventListener("pyodideLoad", load);
+    };
+  }, []);
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <div className={theme.palette.mode}>
-          <CssBaseline/>
-          <SettingsModal open={settingsModalOpen} close={() => {
-            setSettingsModalOpen(false);
-          }} config={config} saveConfig={(cfg) => setConfig(cfg)}/>
-          <div className={"m-4 gap-4 flex flex-row w-full"}>
-            <FormControlLabel control={<Switch checked={config.autoRun} onChange={() => {
-              setConfig({...config, autoRun: !config.autoRun});
-            }}/>} label="Auto Run"/>
-            <ShareButton input={input} shareApiEndpoint={shareApiEndpoint} />
-            <Button
-              variant="contained"
-              color="info"
-              onClick={() => {
-                setSettingsModalOpen(true);
-              }}
-              endIcon={<SettingsIcon/>}
-            >
-              Settings
-            </Button>
-            <Button
-              variant="contained"
-              color={running ? "error" : "success"}
-              onClick={() => {
-                if (running){
-                  interruptExecution();
-                } else {
-                  exec(input)
-                }
-              }}
-              endIcon={running ? <StopIcon/> : <PlayArrowIcon/>}
-            >
-              {running ? "Stop" : "Run"}
-            </Button>
-            <div className={"ml-auto mr-8 flex flex-row"}>
-              <Button
-                color={"error"}
-                variant={"contained"}
-                onClick={() => {
-                  setInput("");
-                }}
-              >
-                <DeleteForeverIcon/>
-              </Button>
-              <LinkIcons config={config} setConfig={(cfg) => {
-                setConfig(cfg);
-              }} />
-            </div>
+    <ThemeProvider defaultTheme="dark" storageKey="eval-theme">
+      <div className={"h-screen flex flex-col"}>
+        <div className="p-4 gap-4 flex flex-row w-full">
+          <Button
+            variant={appState.running ? "destructive" : "success"}
+            onClick={() => {
+              if (appState.running) {
+                interruptExecution();
+              } else {
+                appState.exec(appState.input);
+              }
+            }}
+          >
+            {appState.running ? <FaStop /> : <FaPlay />}
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="auto-run"
+              checked={config.autoRun}
+              onCheckedChange={() => config.setAutoRun(!config.autoRun)}
+            />
+            <label htmlFor="auto-run">Auto Run</label>
           </div>
-          <div className={"h-[94.3vh]"}>
-            <ResizablePanelGroup direction={config.layout} className={"w-full h-full"}>
-              <ResizablePanel>
-                <Editor
-                  height={"100%"}
-                  width={"100%"}
-                  defaultLanguage="python"
-                  value={input}
-                  onChange={(evn) => onChangeInput({target: {value: evn ?? ""}})}
-                  theme={mode === "dark" ? "vs-dark" : "vs"}
-                />
-              </ResizablePanel>
-              <ResizableHandle withHandle/>
-              <XTermConsole />
-            </ResizablePanelGroup>
+          <ShareButton shareApiEndpoint={shareApiEndpoint} />
+          <SettingsButton />
+
+          <SavesButton />
+
+          <div className="ml-auto mr-8 flex flex-row gap-2">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                appState.setInput("");
+              }}
+            >
+              <FaTrashAlt />
+            </Button>
+            <LinkIcons />
           </div>
         </div>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+        <div className="flex-1 flex w-full ">
+          <ResizablePanelGroup
+            direction={config.layout}
+            className="w-full h-full"
+          >
+            <ResizablePanel className="h-full">
+              <MonacoLSPEditor />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <XTermConsole />
+          </ResizablePanelGroup>
+        </div>
+        <StatusBar />
+      </div>
+    </ThemeProvider>
   );
 }
 
-export default App
+export default App;
