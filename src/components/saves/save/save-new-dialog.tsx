@@ -36,6 +36,7 @@ const SaveNewDialog = ({ dialogState }: SaveNewDialogProps) => {
             onClick={() => {
               saves.createSave(name);
               setDialogOpen(false);
+              setName("");
             }}
           >
             Save
