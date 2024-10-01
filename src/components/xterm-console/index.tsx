@@ -4,11 +4,12 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import React from "react";
 
 import { ResizablePanel } from "@/components/ui/resizable";
-import { channel } from "@/main";
+import { channel, interruptExecution } from "@/main";
 import { writeMessage } from "sync-message";
 
 import "@xterm/xterm/css/xterm.css";
 import "@/components/xterm-console/index.css";
+import { useConfig } from "@/lib/config";
 
 const XTermConsole = () => {
   const termRef = React.useRef<HTMLDivElement>(null);
@@ -51,6 +52,25 @@ const XTermConsole = () => {
       terminal.loadAddon(new WebLinksAddon());
       terminal.open(termRef.current);
       fitAddon.current.fit();
+
+      terminal.attachCustomKeyEventHandler((e) => {
+        const termCfg = useConfig.getState().terminal;
+        if (e.key === "c" && e.ctrlKey && termCfg.overrideCtrlC) {
+          const selection = terminal.getSelection();
+          if (selection) {
+            navigator.clipboard.writeText(selection);
+          } else {
+            interruptExecution();
+          }
+          return false;
+        } else if (e.key === "v" && e.ctrlKey && termCfg.overrideCtrlV) {
+          /*navigator.clipboard.readText().then((text) => {
+            terminal.write(text);
+          });*/
+          return false; // returning false will allow the default action to occur (paste)
+        }
+        return true;
+      });
 
       window.term = terminal;
     }

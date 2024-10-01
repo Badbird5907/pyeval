@@ -9,6 +9,14 @@ export type Config = {
   layout: "horizontal" | "vertical";
   setLayout: (layout: "horizontal" | "vertical") => void;
 
+  terminal: {
+    overrideCtrlC: boolean;
+    setOverrideCtrlC: (overrideCtrlC: boolean) => void;
+
+    overrideCtrlV: boolean;
+    setOverrideCtrlV: (overrideCtrlV: boolean) => void;
+  };
+
   autoSave: boolean;
   setAutoSave: (autoSave: boolean) => void;
 
@@ -25,6 +33,20 @@ export const useConfig = create<Config>()(
 
       setAutoRun: (autoRun: boolean) => set({ autoRun }),
       setLayout: (layout: "horizontal" | "vertical") => set({ layout }),
+
+      terminal: {
+        overrideCtrlC: true,
+        setOverrideCtrlC: (overrideCtrlC: boolean) =>
+          set((state) => ({
+            terminal: { ...state.terminal, overrideCtrlC },
+          })),
+
+        overrideCtrlV: true,
+        setOverrideCtrlV: (overrideCtrlV: boolean) =>
+          set((state) => ({
+            terminal: { ...state.terminal, overrideCtrlV },
+          })),
+      },
 
       autoSave: true,
       setAutoSave: (autoSave: boolean) => set({ autoSave }),

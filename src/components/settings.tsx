@@ -1,4 +1,4 @@
-import { FaCog } from "react-icons/fa";
+import { FaCog, FaQuestionCircle } from "react-icons/fa";
 import {
   Dialog,
   DialogDescription,
@@ -23,6 +23,11 @@ import {
   typecheckModes,
 } from "@/components/editor/lsp/clients/python";
 import { Label } from "@/components/ui/label";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 const SettingsButton = () => {
   const config = useConfig();
@@ -90,6 +95,60 @@ const SettingsButton = () => {
               onCheckedChange={() => config.setAutoSave(!config.autoSave)}
             />
             <label htmlFor="auto-save">Auto Save</label>
+          </div>
+          <div className="flex items-center flex-row gap-4 w-full">
+            <div className="flex flex-row gap-2">
+              <Switch
+                id="override-c"
+                checked={config.terminal.overrideCtrlC}
+                onCheckedChange={() =>
+                  config.terminal.setOverrideCtrlC(
+                    !config.terminal.overrideCtrlC,
+                  )
+                }
+              />
+              <label htmlFor="override-c">Override Ctrl+C</label>
+            </div>
+            <div className="flex flex-row gap-2">
+              <Switch
+                id="override-v"
+                checked={config.terminal.overrideCtrlV}
+                onCheckedChange={() =>
+                  config.terminal.setOverrideCtrlV(
+                    !config.terminal.overrideCtrlV,
+                  )
+                }
+              />
+              <label htmlFor="override-v">Override Ctrl+V</label>
+            </div>
+
+            {/* Float FaQuestionCircle to the right */}
+            <div className="ml-auto right-0">
+              <HoverCard>
+                <HoverCardTrigger>
+                  <FaQuestionCircle />
+                </HoverCardTrigger>
+                <HoverCardContent className="flex flex-col w-[25vw] gap-2">
+                  <b>
+                    If you don&apos;t understand what this is, you probably
+                    don&apos;t need to change it
+                  </b>
+                  <p>
+                    <b>Ctrl+C: </b>
+                    When enabled, the terminal will not send Ctrl+C to the
+                    running process and instead copy the <b>selected text</b> to
+                    clipboard. If no text is selected, it will send an interrupt
+                    signal to the running process.
+                  </p>
+                  <p>
+                    <b>Ctrl+V: </b>
+                    When enabled, the terminal will not pass the Ctrl+V key
+                    press to the process running in the terminal and instead
+                    paste the text from the clipboard.
+                  </p>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
           </div>
 
           <DialogClose>
