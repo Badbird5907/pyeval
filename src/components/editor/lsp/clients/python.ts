@@ -47,11 +47,19 @@ const fileName = "Untitled.py";
 
 const documentUri = rootUri + fileName;
 
+export const typecheckModes = [
+  "off",
+  "basic",
+  "standard",
+  "strict",
+  "all",
+] as const;
+export type TypecheckMode = (typeof typecheckModes)[number];
 export type PythonSessionOptions = SessionOptions & {
   pythonVersion?: string;
   pythonPlatform?: string;
   pyrightVersion?: string;
-  typeCheckingMode?: string;
+  typeCheckingMode?: TypecheckMode;
   configOverrides?: { [name: string]: boolean };
   locale?: string;
 };

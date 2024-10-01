@@ -1,3 +1,4 @@
+import { PythonSessionOptions } from "@/components/editor/lsp/clients/python";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -10,6 +11,9 @@ export type Config = {
 
   autoSave: boolean;
   setAutoSave: (autoSave: boolean) => void;
+
+  pyrightSettings: PythonSessionOptions;
+  setPyrightSettings: (settings: PythonSessionOptions) => void;
 };
 export const useConfig = create<Config>()(
   persist(
@@ -24,6 +28,12 @@ export const useConfig = create<Config>()(
 
       autoSave: true,
       setAutoSave: (autoSave: boolean) => set({ autoSave }),
+
+      pyrightSettings: {
+        typeCheckingMode: "standard",
+      },
+      setPyrightSettings: (pyrightSettings: PythonSessionOptions) =>
+        set({ pyrightSettings }),
     }),
     {
       name: "eval-config",

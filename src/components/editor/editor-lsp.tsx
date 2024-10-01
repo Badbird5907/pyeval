@@ -5,6 +5,7 @@ import {
   PythonSessionOptions,
 } from "@/components/editor/lsp/clients/python";
 import { LspClient } from "@/components/editor/lsp/lsp-client";
+import { useConfig } from "@/lib/config";
 import { useEffect } from "react";
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { create } from "zustand";
@@ -56,11 +57,10 @@ export const MonacoLSPEditor = () => {
     });
   });
 
+  const lspSettings = useConfig((state) => state.pyrightSettings);
   useEffect(() => {
-    lspClient.updateSettings({
-      typeCheckingMode: "all",
-    });
-  }, []);
+    lspClient.updateSettings(lspSettings);
+  }, [lspSettings]);
 
   return (
     <MonacoEditor
