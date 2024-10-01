@@ -39,11 +39,12 @@ export default [
           useTabs: false,
           tabWidth: 2,
           bracketSpacing: true,
+          endOfLine: "auto",
         },
       ],
     },
   },
   {
-    ignores: ["**/components/ui/*.tsx"]
+    ignores: ["**/components/ui/*.tsx"],
   },
 ];
