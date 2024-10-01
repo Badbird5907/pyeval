@@ -32,6 +32,7 @@ export type Saves = {
   getSave: (id: string) => Save | null;
   clearCurrentSave: () => void;
   isCurrentInputDirty: () => boolean;
+  isCurrentInputDirtyIgnoreSave: () => boolean;
 };
 
 export const useSaves = create<Saves>()(
@@ -99,6 +100,15 @@ export const useSaves = create<Saves>()(
           return false;
         }
         return current.code !== currentInput;
+      },
+      isCurrentInputDirtyIgnoreSave: () => {
+        const currentState = get();
+        if (currentState.currentSave) {
+          return currentState.isCurrentInputDirty();
+        } else {
+          const currentInput = useAppState.getState().input;
+          return currentInput !== defaultInput;
+        }
       },
     }),
     {

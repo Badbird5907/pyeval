@@ -130,8 +130,19 @@ function App() {
       appState.setInterpreterLoading(false);
     };
     document.addEventListener("pyodideLoad", load);
+    const beforeunload = (e: BeforeUnloadEvent) => {
+      if (
+        appState.running ||
+        useSaves.getState().isCurrentInputDirtyIgnoreSave()
+      ) {
+        e.preventDefault();
+        e.returnValue = true;
+      }
+    };
+    window.addEventListener("beforeunload", beforeunload);
     return () => {
       document.removeEventListener("pyodideLoad", load);
+      window.removeEventListener("beforeunload", beforeunload);
     };
   }, []);
 
