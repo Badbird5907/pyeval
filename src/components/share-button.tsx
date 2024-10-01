@@ -74,12 +74,17 @@ const ShareButton = ({ shareApiEndpoint }: ShareButtonProps) => {
             <FaShareAlt />
           </Button>
         </PopoverTrigger>
-        <PopoverContent>
-          {shareError
-            ? "Error!"
-            : shareProcessing
-              ? "Processing..."
-              : "Link copied to clipboard"}
+        <PopoverContent className="flex flex-col gap-4">
+          <span>
+            {shareError
+              ? "Error!"
+              : shareProcessing
+                ? "Processing..."
+                : "Link copied to clipboard"}
+          </span>
+          <span className="font-bold">
+            Note: This link is not permanent and will expire in about 90 days.
+          </span>
         </PopoverContent>
       </Popover>
     </>
