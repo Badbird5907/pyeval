@@ -58,7 +58,7 @@ export const MonacoLSPEditor = () => {
 
   useEffect(() => {
     lspClient.updateSettings({
-      typeCheckingMode: "standard",
+      typeCheckingMode: "all",
     });
   }, []);
 

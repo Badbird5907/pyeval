@@ -396,7 +396,7 @@ function convertCompletionItem(
 ): monaco.languages.CompletionItem {
   const converted: monaco.languages.CompletionItem = {
     label: item.label,
-    kind: convertCompletionItemKind(item.kind!),
+    kind: convertCompletionItemKind(item.kind),
     tags: item.tags,
     detail: item.detail,
     documentation: item.documentation,
@@ -404,13 +404,7 @@ function convertCompletionItem(
     filterText: item.filterText,
     preselect: item.preselect,
     insertText: item.label,
-    // range: undefined,
-    range: {
-      startLineNumber: 1,
-      startColumn: 1,
-      endLineNumber: 1,
-      endColumn: 1,
-    },
+    range: undefined as unknown as monaco.IRange, // hack
   };
 
   if (item.textEdit) {
@@ -442,9 +436,8 @@ function convertCompletionItem(
 
   return converted;
 }
-
 function convertCompletionItemKind(
-  itemKind: CompletionItemKind,
+  itemKind: CompletionItemKind | undefined,
 ): monaco.languages.CompletionItemKind {
   switch (itemKind) {
     case CompletionItemKind.Constant:
