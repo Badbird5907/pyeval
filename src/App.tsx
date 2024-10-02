@@ -32,6 +32,11 @@ type AppState = {
   input: string;
   interpreterLoading: boolean;
   lspLoading: boolean;
+  currentSave: string | null;
+
+  __INTERNAL__: {
+    setCurrentSave: (currentSave: string | null) => void;
+  };
 
   setRunning: (running: boolean) => void;
   setInput: (input: string) => void;
@@ -46,14 +51,16 @@ export const useAppState = create<AppState>((set, get) => ({
   input: defaultInput,
   interpreterLoading: !window.setup,
   lspLoading: true,
+  currentSave: null,
 
   setRunning: (running: boolean) => set({ running }),
   setInput: (input: string) => {
     const { autoRun, autoSave } = useConfig.getState();
     if (autoSave) {
       const saves = useSaves.getState();
-      if (saves.currentSave) {
-        saves.save(saves.currentSave, input);
+      const { currentSave } = get();
+      if (currentSave) {
+        saves.save(currentSave, input);
       }
     }
     if (autoRun && input.includes("input(")) {
@@ -87,6 +94,10 @@ export const useAppState = create<AppState>((set, get) => ({
       console.log("========== End Execution ==========");
     });
   },
+
+  __INTERNAL__: {
+    setCurrentSave: (currentSave: string | null) => set({ currentSave }),
+  },
 }));
 
 function App() {
@@ -94,6 +105,8 @@ function App() {
   const appState = useAppState();
 
   const config = useConfig();
+
+  const saves = useSaves((state) => state.saves);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -123,9 +136,6 @@ function App() {
         appState.exec(appState.input);
       }
     }
-  }, []);
-
-  useEffect(() => {
     const load = () => {
       appState.setInterpreterLoading(false);
     };
@@ -145,6 +155,17 @@ function App() {
       window.removeEventListener("beforeunload", beforeunload);
     };
   }, []);
+
+  useEffect(() => {
+    // handle code changes from another tab
+    if (appState.currentSave) {
+      const save = saves.find((save) => save.id === appState.currentSave);
+      if (save && appState.input !== save.code) {
+        // very important! prevents infinite loop
+        appState.setInput(save.code);
+      }
+    }
+  }, [saves]);
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="eval-theme">

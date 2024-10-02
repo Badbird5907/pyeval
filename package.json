@@ -36,6 +36,7 @@
     "lucide-react": "^0.446.0",
     "monaco-editor": "^0.52.0",
     "nanoid": "^5.0.7",
+    "persist-and-sync": "^1.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
