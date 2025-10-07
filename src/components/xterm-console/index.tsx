@@ -53,8 +53,10 @@ const XTermConsole = () => {
       terminal.open(termRef.current);
       fitAddon.current.fit();
 
-      // Print initial loading message
-      terminal.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+      // Print initial loading message only if Pyodide hasn't loaded yet
+      if (!window.setup) {
+        terminal.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+      }
 
       terminal.attachCustomKeyEventHandler((e) => {
         const termCfg = useConfig.getState().terminal;
@@ -134,6 +136,10 @@ const XTermConsole = () => {
     setStdinBuffer([]);
     setCurrentStdin("");
     setQueuedReads([]);
+    // Re-display loading message if Python interpreter hasn't loaded yet
+    if (!window.setup) {
+      term.current.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+    }
   };
 
   const handleDone = (e: Event) => {
