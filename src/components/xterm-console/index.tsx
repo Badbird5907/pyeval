@@ -55,7 +55,9 @@ const XTermConsole = () => {
 
       // Print initial loading message only if Pyodide hasn't loaded yet
       if (!window.setup) {
-        terminal.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+        terminal.writeln(
+          "\x1b[33mLoading Python interpreter, this could take a few seconds...\x1b[0m",
+        );
       }
 
       terminal.attachCustomKeyEventHandler((e) => {
@@ -138,7 +140,9 @@ const XTermConsole = () => {
     setQueuedReads([]);
     // Re-display loading message if Python interpreter hasn't loaded yet
     if (!window.setup) {
-      term.current.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+      term.current.writeln(
+        "\x1b[33mLoading Python interpreter, this could take a few seconds...\x1b[0m",
+      );
     }
   };
 
