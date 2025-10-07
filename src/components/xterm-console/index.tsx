@@ -51,7 +51,16 @@ const XTermConsole = () => {
       terminal.loadAddon(fitAddon.current);
       terminal.loadAddon(new WebLinksAddon());
       terminal.open(termRef.current);
-      fitAddon.current.fit();
+
+      // Fit the terminal after the DOM has fully laid out
+      // using requestAnimationFrame ensures the layout is complete
+      requestAnimationFrame(() => {
+        fitAddon.current.fit();
+        // additional fit after a short delay to handle slower layout scenarios
+        setTimeout(() => {
+          fitAddon.current.fit();
+        }, 100);
+      });
 
       // Print initial loading message only if Pyodide hasn't loaded yet
       if (!window.setup) {
