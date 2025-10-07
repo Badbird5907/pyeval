@@ -53,6 +53,9 @@ const XTermConsole = () => {
       terminal.open(termRef.current);
       fitAddon.current.fit();
 
+      // Print initial loading message
+      terminal.writeln("\x1b[33mLoading Python interpreter...\x1b[0m");
+
       terminal.attachCustomKeyEventHandler((e) => {
         const termCfg = useConfig.getState().terminal;
         if (e.key === "c" && e.ctrlKey && termCfg.overrideCtrlC) {
@@ -143,6 +146,14 @@ const XTermConsole = () => {
   const handleResize = () => {
     fitAddon.current.fit();
   };
+  const handlePyodideLoad = () => {
+    term.current.writeln("\x1b[32mPython interpreter ready!\x1b[0m");
+  };
+
+  const handleInfo = (e: Event) => {
+    const { message } = (e as CustomEvent).detail;
+    term.current.writeln("\x1b[36m" + message + "\x1b[0m");
+  };
 
   const handleStdinRead = (event: Event) => {
     // const data = window.prompt("Enter input");
@@ -173,6 +184,8 @@ const XTermConsole = () => {
     window.addEventListener("done", handleDone);
     window.addEventListener("resize", handleResize);
     window.addEventListener("stdin:read", handleStdinRead);
+    window.addEventListener("pyodideLoad", handlePyodideLoad);
+    window.addEventListener("info", handleInfo);
     return () => {
       window.removeEventListener("stdout", handleStd, true);
       window.removeEventListener("stderr", handleStd, true);
@@ -180,6 +193,8 @@ const XTermConsole = () => {
       window.removeEventListener("done", handleDone, true);
       window.removeEventListener("resize", handleResize, true);
       window.removeEventListener("stdin:read", handleStdinRead, true);
+      window.removeEventListener("pyodideLoad", handlePyodideLoad, true);
+      window.removeEventListener("info", handleInfo, true);
     };
   }, []);
 

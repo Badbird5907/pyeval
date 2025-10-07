@@ -24,6 +24,7 @@ window.addEventListener("stdin:read", (data: Event) => {
 
 const pyodideWorker = new Worker("pyodide/worker.js");
 const interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
+
 pyodideWorker.postMessage({
   cmd: "setInterruptBuffer",
   interruptBuffer: interruptBuffer,
