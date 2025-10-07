@@ -128,6 +128,14 @@ function App() {
       ];
       Promise.all(promises).then(() => {
         console.log("Setup complete");
+        window.dispatchEvent(
+          new CustomEvent("info", {
+            detail: {
+              message:
+                "Code loaded from share link. Click the Run button to execute.",
+            },
+          }),
+        );
       });
     } else {
       const saveState = useSaves.getState();
