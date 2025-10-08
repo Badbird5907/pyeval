@@ -70,7 +70,12 @@ self.addEventListener("message", async (msg) => {
     self.pyodide
       .runPythonAsync(python)
       .then((results) => {
-        self.postMessage({ cmd: "done", results, id });
+        let jsResults = results;
+        if (results && typeof results.toJs === 'function') { // pyodide returns a proxy for objects
+          jsResults = results.toJs({ dict_converter: Object.fromEntries });
+        }
+        
+        self.postMessage({ cmd: "done", results: JSON.stringify(jsResults), id });
       })
       .catch((err) => {
         console.error(err);
