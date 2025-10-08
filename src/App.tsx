@@ -204,7 +204,7 @@ function App() {
 
           <SavesButton />
 
-          <div className="ml-auto mr-8 flex flex-row gap-2">
+          <div className="ml-auto flex flex-row gap-2">
             <Button
               variant="destructive"
               onClick={() => {
