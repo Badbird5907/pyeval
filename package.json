@@ -27,6 +27,7 @@
     "@tanstack/react-table": "^8.20.5",
     "@typefox/pyright-browser": "^1.1.299",
     "@uiw/react-textarea-code-editor": "^3.0.2",
+    "@vercel/analytics": "^1.5.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",

@@ -6,6 +6,7 @@ import App, { useAppState } from "@/App";
 import { makeChannel, writeMessage } from "sync-message";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
+import { Analytics } from "@vercel/analytics/react";
 
 export const channel = makeChannel();
 
@@ -87,6 +88,7 @@ window.runPython = runPython;
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
+    <Analytics />
     <App />
   </React.StrictMode>,
 );
